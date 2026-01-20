@@ -411,7 +411,7 @@ class FirstRunSetup:
         
         self.window = tk.Tk()
         self.window.title("PDF Screenshot Tool - Welcome")
-        self.window.geometry("550x580")
+        self.window.geometry("550x650")
         self.window.resizable(False, False)
         
         # Try to set window icon
@@ -500,12 +500,19 @@ class FirstRunSetup:
         
         # Buttons
         btn_frame = ttk.Frame(main_frame)
-        btn_frame.pack(fill=tk.X)
+        btn_frame.pack(fill=tk.X, pady=(20, 0))
         
-        start_btn = ttk.Button(
+        start_btn = tk.Button(
             btn_frame, 
-            text="Start Using PDF Screenshot Tool →", 
-            command=self.finish_setup
+            text="  Start PDF Screenshot Tool  →  ", 
+            command=self.finish_setup,
+            font=('Segoe UI', 11, 'bold'),
+            bg='#2563eb',
+            fg='white',
+            padx=20,
+            pady=10,
+            cursor='hand2',
+            relief=tk.FLAT
         )
         start_btn.pack(side=tk.RIGHT)
         
