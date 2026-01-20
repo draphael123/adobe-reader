@@ -411,7 +411,7 @@ class FirstRunSetup:
         
         self.window = tk.Tk()
         self.window.title("PDF Screenshot Tool - Welcome")
-        self.window.geometry("550x500")
+        self.window.geometry("550x580")
         self.window.resizable(False, False)
         
         # Try to set window icon
@@ -486,14 +486,17 @@ class FirstRunSetup:
         info_frame = ttk.LabelFrame(main_frame, text="How to Use", padding="15")
         info_frame.pack(fill=tk.X, pady=(0, 20))
         
-        info_text = """1. The app runs in the system tray (bottom-right, near the clock)
-2. Open any PDF in Adobe Acrobat or Adobe Reader
-3. Navigate pages using Page Up/Down, arrow keys, or scroll
-4. Screenshots are captured automatically!
-
-💡 Tip: Press Ctrl+Shift+S to capture manually anytime."""
+        steps = [
+            "1. The app runs in the system tray (bottom-right, near clock)",
+            "2. Open any PDF in Adobe Acrobat or Adobe Reader",
+            "3. Navigate pages using Page Up/Down, arrows, or scroll",
+            "4. Screenshots are captured automatically!",
+            "",
+            "Tip: Press Ctrl+Shift+S to capture manually anytime"
+        ]
         
-        ttk.Label(info_frame, text=info_text, justify=tk.LEFT).pack(anchor=tk.W)
+        for step in steps:
+            ttk.Label(info_frame, text=step, justify=tk.LEFT).pack(anchor=tk.W, pady=1)
         
         # Buttons
         btn_frame = ttk.Frame(main_frame)
