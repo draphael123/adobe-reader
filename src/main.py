@@ -190,14 +190,27 @@ class AcrobatMonitor:
         self.hotkey_keys = {keyboard.Key.ctrl_l, keyboard.Key.shift, keyboard.KeyCode.from_char('s')}
         
     def is_acrobat_active(self):
-        """Check if Adobe Acrobat is the active window."""
+        """Check if Adobe Acrobat is the active window WITH a PDF open."""
         try:
             active_window = gw.getActiveWindow()
             if active_window:
                 title = active_window.title
-                for acrobat_title in self.ACROBAT_TITLES:
-                    if acrobat_title in title:
-                        return True, title, active_window
+                # Check if it's Adobe Acrobat/Reader
+                is_acrobat = any(acrobat_title in title for acrobat_title in self.ACROBAT_TITLES)
+                if not is_acrobat:
+                    return False, "", None
+                
+                # Check if an actual PDF is open (title should contain .pdf)
+                # Adobe shows: "Document.pdf - Adobe Acrobat Reader"
+                has_pdf = '.pdf' in title.lower()
+                if not has_pdf:
+                    # Also check for common patterns without .pdf extension shown
+                    # When a PDF is open, title won't be just "Adobe Acrobat Reader"
+                    just_app_names = ['Adobe Acrobat Reader', 'Adobe Acrobat', 'Adobe Acrobat Reader DC', 'Adobe Acrobat DC']
+                    if title.strip() in just_app_names:
+                        return False, "", None
+                
+                return True, title, active_window
         except Exception:
             pass
         return False, "", None
@@ -639,7 +652,7 @@ class SettingsWindow:
         self.notify_var = tk.BooleanVar(value=self.config.get('show_notifications'))
         notify_check = ttk.Checkbutton(
             main_frame, 
-            text="Show notification on capture",
+            text="Show notification when screenshot is captured",
             variable=self.notify_var
         )
         notify_check.pack(anchor=tk.W, pady=2)
