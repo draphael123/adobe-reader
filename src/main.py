@@ -68,6 +68,7 @@ class Config:
     
     def __init__(self):
         self.config = DEFAULT_CONFIG.copy()
+        self.is_first_run = not CONFIG_FILE.exists()
         self.load()
     
     def load(self):
@@ -394,6 +395,154 @@ class AcrobatMonitor:
         if self.mouse_listener:
             self.mouse_listener.stop()
         logger.info("Monitoring stopped")
+
+
+class FirstRunSetup:
+    """First-run setup wizard shown on initial launch."""
+    
+    def __init__(self, config):
+        self.config = config
+        self.completed = False
+    
+    def show(self):
+        """Show the first-run setup wizard."""
+        import tkinter as tk
+        from tkinter import filedialog, ttk
+        
+        self.window = tk.Tk()
+        self.window.title("PDF Screenshot Tool - Welcome")
+        self.window.geometry("550x500")
+        self.window.resizable(False, False)
+        
+        # Try to set window icon
+        try:
+            icon_path = Path(__file__).parent.parent / 'assets' / 'icon.ico'
+            if icon_path.exists():
+                self.window.iconbitmap(str(icon_path))
+        except Exception:
+            pass
+        
+        # Style
+        style = ttk.Style()
+        style.configure('Title.TLabel', font=('Segoe UI', 18, 'bold'))
+        style.configure('Subtitle.TLabel', font=('Segoe UI', 11))
+        style.configure('Header.TLabel', font=('Segoe UI', 10, 'bold'))
+        
+        # Main frame
+        main_frame = ttk.Frame(self.window, padding="30")
+        main_frame.pack(fill=tk.BOTH, expand=True)
+        
+        # Welcome header
+        ttk.Label(main_frame, text="👋 Welcome!", style='Title.TLabel').pack(pady=(0, 10))
+        ttk.Label(
+            main_frame, 
+            text="Let's set up PDF Screenshot Tool.\nIt will run in the background and capture screenshots\nautomatically when you navigate PDF pages in Adobe Acrobat.",
+            style='Subtitle.TLabel',
+            justify=tk.CENTER
+        ).pack(pady=(0, 30))
+        
+        # Settings section
+        settings_frame = ttk.LabelFrame(main_frame, text="Settings", padding="15")
+        settings_frame.pack(fill=tk.X, pady=(0, 20))
+        
+        # Save folder
+        ttk.Label(settings_frame, text="Save screenshots to:", style='Header.TLabel').pack(anchor=tk.W)
+        
+        folder_frame = ttk.Frame(settings_frame)
+        folder_frame.pack(fill=tk.X, pady=(5, 15))
+        
+        self.folder_var = tk.StringVar(value=self.config.get('save_folder'))
+        folder_entry = ttk.Entry(folder_frame, textvariable=self.folder_var, width=45)
+        folder_entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        
+        browse_btn = ttk.Button(folder_frame, text="Browse...", command=self.browse_folder)
+        browse_btn.pack(side=tk.LEFT, padx=(10, 0))
+        
+        # Options
+        ttk.Label(settings_frame, text="Options:", style='Header.TLabel').pack(anchor=tk.W, pady=(10, 5))
+        
+        self.scroll_var = tk.BooleanVar(value=True)
+        ttk.Checkbutton(
+            settings_frame, 
+            text="Capture on mouse scroll (recommended for smooth scrolling)",
+            variable=self.scroll_var
+        ).pack(anchor=tk.W, pady=2)
+        
+        self.notify_var = tk.BooleanVar(value=True)
+        ttk.Checkbutton(
+            settings_frame, 
+            text="Show notification when screenshot is captured",
+            variable=self.notify_var
+        ).pack(anchor=tk.W, pady=2)
+        
+        self.startup_var = tk.BooleanVar(value=False)
+        ttk.Checkbutton(
+            settings_frame, 
+            text="Start automatically with Windows",
+            variable=self.startup_var
+        ).pack(anchor=tk.W, pady=2)
+        
+        # Info section
+        info_frame = ttk.LabelFrame(main_frame, text="How to Use", padding="15")
+        info_frame.pack(fill=tk.X, pady=(0, 20))
+        
+        info_text = """1. The app runs in the system tray (bottom-right, near the clock)
+2. Open any PDF in Adobe Acrobat or Adobe Reader
+3. Navigate pages using Page Up/Down, arrow keys, or scroll
+4. Screenshots are captured automatically!
+
+💡 Tip: Press Ctrl+Shift+S to capture manually anytime."""
+        
+        ttk.Label(info_frame, text=info_text, justify=tk.LEFT).pack(anchor=tk.W)
+        
+        # Buttons
+        btn_frame = ttk.Frame(main_frame)
+        btn_frame.pack(fill=tk.X)
+        
+        start_btn = ttk.Button(
+            btn_frame, 
+            text="Start Using PDF Screenshot Tool →", 
+            command=self.finish_setup
+        )
+        start_btn.pack(side=tk.RIGHT)
+        
+        # Center window
+        self.window.update_idletasks()
+        width = self.window.winfo_width()
+        height = self.window.winfo_height()
+        x = (self.window.winfo_screenwidth() // 2) - (width // 2)
+        y = (self.window.winfo_screenheight() // 2) - (height // 2)
+        self.window.geometry(f'+{x}+{y}')
+        
+        # Make it stay on top
+        self.window.attributes('-topmost', True)
+        self.window.focus_force()
+        
+        self.window.protocol("WM_DELETE_WINDOW", self.finish_setup)
+        self.window.mainloop()
+        
+        return self.completed
+    
+    def browse_folder(self):
+        from tkinter import filedialog
+        folder = filedialog.askdirectory(initialdir=self.folder_var.get())
+        if folder:
+            self.folder_var.set(folder)
+    
+    def finish_setup(self):
+        # Save settings
+        self.config.set('save_folder', self.folder_var.get())
+        self.config.set('capture_on_scroll', self.scroll_var.get())
+        self.config.set('show_notifications', self.notify_var.get())
+        
+        # Handle startup setting
+        if self.startup_var.get():
+            set_startup_registry(True)
+        self.config.set('start_with_windows', self.startup_var.get())
+        
+        self.completed = True
+        self.window.destroy()
+        logger.info("First-run setup completed")
 
 
 class SettingsWindow:
@@ -789,6 +938,12 @@ class PDFScreenshotTool:
     def run(self):
         """Run the application."""
         logger.info("PDF Screenshot Tool starting...")
+        
+        # Show first-run setup if this is the first launch
+        if self.config.is_first_run:
+            logger.info("First run detected, showing setup wizard")
+            setup = FirstRunSetup(self.config)
+            setup.show()
         
         # Start the monitor
         self.monitor.start()
