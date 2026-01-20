@@ -1,14 +1,35 @@
-# Build artifacts
+# Build outputs (rebuilt by CI)
 build/
-__pycache__/
-*.pyc
+dist/
+public/
+*.spec.bak
 
-# Virtual environment
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
 venv/
+.venv/
+ENV/
 
 # IDE
-.vscode/
 .idea/
+.vscode/
+*.swp
+*.swo
 
-# Keep dist folder but ignore other build outputs
+# OS
+.DS_Store
+Thumbs.db
 
+# Logs
+*.log
+
+# Local config
+.vercel/
+
+# Installer output (optional - uncomment if you want to include)
+# installer_output/

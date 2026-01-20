@@ -1,0 +1,89 @@
+name: Build and Deploy to Vercel
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:  # Allow manual trigger
+
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+jobs:
+  build-and-deploy:
+    runs-on: windows-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Build application
+        run: |
+          pyinstaller --clean pdf_screenshot_tool.spec
+          
+      - name: Prepare deployment files
+        run: |
+          # Create public directory
+          New-Item -ItemType Directory -Path "public" -Force
+          New-Item -ItemType Directory -Path "public/assets" -Force
+          
+          # Copy website files
+          Copy-Item "index.html" "public/"
+          Copy-Item "landing-page.html" "public/"
+          
+          # Copy assets
+          if (Test-Path "assets/icon.ico") {
+            Copy-Item "assets/icon.ico" "public/assets/"
+          }
+          
+          # Copy built exe
+          Copy-Item "dist/PDFScreenshotTool.exe" "public/"
+          
+          # Create ZIP
+          Compress-Archive -Path "public/PDFScreenshotTool.exe" -DestinationPath "public/PDFScreenshotTool.zip" -Force
+          
+          # List files for verification
+          Write-Host "Deployment files:"
+          Get-ChildItem -Recurse "public"
+        shell: pwsh
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel
+
+      - name: Deploy to Vercel (Preview)
+        if: github.event_name == 'pull_request'
+        run: |
+          cd public
+          vercel --token ${{ secrets.VERCEL_TOKEN }} --yes
+        shell: bash
+
+      - name: Deploy to Vercel (Production)
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+        run: |
+          cd public
+          vercel --token ${{ secrets.VERCEL_TOKEN }} --prod --yes
+        shell: bash
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: PDFScreenshotTool
+          path: |
+            public/PDFScreenshotTool.exe
+            public/PDFScreenshotTool.zip
+          retention-days: 30
+
