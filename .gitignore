@@ -1,0 +1,14 @@
+# Build artifacts
+build/
+__pycache__/
+*.pyc
+
+# Virtual environment
+venv/
+
+# IDE
+.vscode/
+.idea/
+
+# Keep dist folder but ignore other build outputs
+
