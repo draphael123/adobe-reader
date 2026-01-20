@@ -121,24 +121,62 @@ logger = logging.getLogger(__name__)
 
 # Default configuration
 DEFAULT_CONFIG = {
+    # Basic settings
     'save_folder': str(Path.home() / 'Documents' / 'PDF Screenshots'),
     'enabled': True,
-    'capture_delay': 0.3,  # seconds to wait after navigation
-    'hotkey_enabled': True,
     'start_with_windows': False,
+    'dark_mode': True,
+    'portable_mode': PORTABLE_FLAG.exists(),
+    
+    # Capture behavior
+    'capture_delay': 0.3,  # seconds to wait after navigation
+    'capture_cooldown': 0.5,  # minimum time between any captures
     'capture_on_scroll': True,
-    'image_format': 'png',  # 'png' or 'jpeg'
+    'capture_on_click': False,  # capture on mouse click in Acrobat
+    'min_scroll_distance': 50,  # minimum pixels scrolled before capture
+    'max_captures_per_document': 0,  # 0 = unlimited
+    'capture_document_only': False,  # crop to document area
+    
+    # Image settings
+    'image_format': 'png',  # 'png', 'jpeg', or 'webp'
     'jpeg_quality': 90,
-    'organize_by_document': True,  # Create subfolders per document
-    'show_notifications': True,
+    'max_image_width': 0,  # 0 = no limit
+    'max_image_height': 0,  # 0 = no limit
+    'grayscale_mode': False,  # convert to grayscale
+    'add_border': False,  # add border around capture
+    'border_size': 10,  # border size in pixels
+    'border_color': '#ffffff',  # border color
+    
+    # File organization
+    'organize_by_document': True,  # create subfolders per document
+    'organize_by_date': False,  # create date-based subfolders
+    'date_folder_format': 'daily',  # 'daily', 'weekly', 'monthly'
+    'max_files_per_folder': 0,  # 0 = unlimited
+    'filename_template': '{document}_{date}_{time}',  # filename pattern
+    
+    # Hotkeys
+    'hotkey_enabled': True,
     'manual_hotkey': 'ctrl+shift+s',
     'pause_hotkey': 'ctrl+shift+p',
-    'sound_enabled': True,  # Play sound on capture
-    'dark_mode': True,  # Dark mode UI
+    'open_folder_hotkey': 'ctrl+shift+o',
+    'open_settings_hotkey': 'ctrl+shift+,',
+    
+    # Notifications
+    'show_notifications': True,
+    'notification_duration': 3,  # seconds
+    'sound_enabled': True,
+    'sound_volume': 100,  # 0-100
+    'custom_sound_file': '',  # path to custom .wav file
+    
+    # Auto-cleanup
     'auto_cleanup_enabled': False,
-    'auto_cleanup_days': 30,  # Delete screenshots older than X days
-    'capture_document_only': False,  # Try to capture just the document area
-    'portable_mode': PORTABLE_FLAG.exists(),
+    'auto_cleanup_days': 30,
+    
+    # Filters
+    'filename_whitelist': '',  # comma-separated patterns to include
+    'filename_blacklist': '',  # comma-separated patterns to exclude
+    'min_window_width': 200,  # minimum window width to capture
+    'min_window_height': 200,  # minimum window height to capture
 }
 
 # Default statistics
@@ -327,13 +365,61 @@ def is_startup_enabled():
         return False
 
 
-def play_capture_sound():
+def play_capture_sound(config=None):
     """Play a camera shutter sound."""
     try:
-        # Use Windows system sound
-        winsound.PlaySound("SystemAsterisk", winsound.SND_ALIAS | winsound.SND_ASYNC)
+        custom_sound = config.get('custom_sound_file') if config else ''
+        
+        if custom_sound and Path(custom_sound).exists():
+            # Play custom sound file
+            winsound.PlaySound(custom_sound, winsound.SND_FILENAME | winsound.SND_ASYNC)
+        else:
+            # Use Windows system sound
+            winsound.PlaySound("SystemAsterisk", winsound.SND_ALIAS | winsound.SND_ASYNC)
     except Exception:
         pass
+
+
+def parse_filename_template(template, doc_name, config=None):
+    """Parse filename template and return formatted filename."""
+    now = datetime.now()
+    
+    replacements = {
+        '{document}': doc_name,
+        '{date}': now.strftime('%Y%m%d'),
+        '{time}': now.strftime('%H%M%S'),
+        '{datetime}': now.strftime('%Y%m%d_%H%M%S'),
+        '{year}': now.strftime('%Y'),
+        '{month}': now.strftime('%m'),
+        '{day}': now.strftime('%d'),
+        '{hour}': now.strftime('%H'),
+        '{minute}': now.strftime('%M'),
+        '{second}': now.strftime('%S'),
+        '{ms}': now.strftime('%f')[:3],
+    }
+    
+    result = template
+    for key, value in replacements.items():
+        result = result.replace(key, value)
+    
+    # Clean filename of invalid characters
+    result = "".join(c for c in result if c.isalnum() or c in (' ', '-', '_', '.')).strip()
+    
+    return result if result else f"{doc_name}_{now.strftime('%Y%m%d_%H%M%S')}"
+
+
+def matches_filter(text, filter_patterns):
+    """Check if text matches any of the comma-separated patterns."""
+    if not filter_patterns:
+        return False
+    
+    patterns = [p.strip().lower() for p in filter_patterns.split(',') if p.strip()]
+    text_lower = text.lower()
+    
+    for pattern in patterns:
+        if pattern in text_lower:
+            return True
+    return False
 
 
 def cleanup_old_screenshots(folder, days):
@@ -430,16 +516,17 @@ class AcrobatMonitor:
         keyboard.Key.end,
     ]
     
-    def __init__(self, config, stats, session_manager, on_capture_callback=None, on_status_change=None):
+    def __init__(self, config, stats, session_manager, on_capture_callback=None, on_status_change=None, on_open_folder=None, on_open_settings=None):
         self.config = config
         self.stats = stats
         self.session_manager = session_manager
         self.on_capture_callback = on_capture_callback
         self.on_status_change = on_status_change
+        self.on_open_folder = on_open_folder
+        self.on_open_settings = on_open_settings
         self.keyboard_listener = None
         self.mouse_listener = None
         self.last_capture_time = 0
-        self.capture_cooldown = 0.5  # Minimum time between captures
         self.last_window_title = ""
         self.screenshot_count = 0
         self.last_screenshot_hash = None  # For duplicate detection
@@ -447,6 +534,9 @@ class AcrobatMonitor:
         self.capture_lock = threading.Lock()  # Thread safety
         self.recent_captures = []  # Store recent capture paths
         self.paused = False  # Pause/resume state
+        self.document_capture_counts = {}  # Track captures per document
+        self.accumulated_scroll = 0  # Track scroll distance
+        self.folder_file_counts = {}  # Track files per folder
         
         # Manual hotkey tracking
         self.current_keys = set()
@@ -463,11 +553,8 @@ class AcrobatMonitor:
                     return False, "", None
                 
                 # Check if an actual PDF is open (title should contain .pdf)
-                # Adobe shows: "Document.pdf - Adobe Acrobat Reader"
                 has_pdf = '.pdf' in title.lower()
                 if not has_pdf:
-                    # Also check for common patterns without .pdf extension shown
-                    # When a PDF is open, title won't be just "Adobe Acrobat Reader"
                     just_app_names = ['Adobe Acrobat Reader', 'Adobe Acrobat', 'Adobe Acrobat Reader DC', 'Adobe Acrobat DC']
                     if title.strip() in just_app_names:
                         return False, "", None
@@ -476,6 +563,39 @@ class AcrobatMonitor:
         except Exception:
             pass
         return False, "", None
+    
+    def check_filters(self, window_title):
+        """Check if the document passes whitelist/blacklist filters."""
+        whitelist = self.config.get('filename_whitelist')
+        blacklist = self.config.get('filename_blacklist')
+        
+        # If blacklist matches, reject
+        if blacklist and matches_filter(window_title, blacklist):
+            return False
+        
+        # If whitelist is set and doesn't match, reject
+        if whitelist and not matches_filter(window_title, whitelist):
+            return False
+        
+        return True
+    
+    def check_window_size(self, window):
+        """Check if window meets minimum size requirements."""
+        min_width = self.config.get('min_window_width')
+        min_height = self.config.get('min_window_height')
+        
+        if window.width < min_width or window.height < min_height:
+            return False
+        return True
+    
+    def check_max_captures(self, doc_name):
+        """Check if document has reached max captures limit."""
+        max_captures = self.config.get('max_captures_per_document')
+        if max_captures <= 0:
+            return True  # No limit
+        
+        current_count = self.document_capture_counts.get(doc_name, 0)
+        return current_count < max_captures
     
     def get_document_name(self, window_title):
         """Extract document name from window title."""
@@ -528,8 +648,27 @@ class AcrobatMonitor:
                     logger.warning("Manual capture failed: Adobe Acrobat not active")
                 return None
             
+            # Check filters
+            if not manual and not self.check_filters(window_title):
+                logger.debug(f"Document filtered out: {window_title}")
+                return None
+            
+            # Check window size
+            if not self.check_window_size(window):
+                logger.debug("Window too small to capture")
+                return None
+            
+            doc_name = self.get_document_name(window_title)
+            
+            # Check max captures per document
+            if not manual and not self.check_max_captures(doc_name):
+                logger.debug(f"Max captures reached for: {doc_name}")
+                return None
+            
+            # Check cooldown
             current_time = time.time()
-            if not manual and current_time - self.last_capture_time < self.capture_cooldown:
+            cooldown = self.config.get('capture_cooldown')
+            if not manual and current_time - self.last_capture_time < cooldown:
                 return None
             
             self.last_capture_time = current_time
@@ -575,44 +714,125 @@ class AcrobatMonitor:
                             return None
                         self.last_screenshot_hash = current_hash
                     
+                    # Convert to PIL Image for processing
+                    img = Image.frombytes("RGB", screenshot.size, screenshot.bgra, "raw", "BGRX")
+                    
+                    # Apply grayscale if enabled
+                    if self.config.get('grayscale_mode'):
+                        img = img.convert('L').convert('RGB')
+                    
+                    # Resize if max dimensions are set
+                    max_width = self.config.get('max_image_width')
+                    max_height = self.config.get('max_image_height')
+                    if max_width > 0 or max_height > 0:
+                        orig_width, orig_height = img.size
+                        new_width, new_height = orig_width, orig_height
+                        
+                        if max_width > 0 and orig_width > max_width:
+                            ratio = max_width / orig_width
+                            new_width = max_width
+                            new_height = int(orig_height * ratio)
+                        
+                        if max_height > 0 and new_height > max_height:
+                            ratio = max_height / new_height
+                            new_height = max_height
+                            new_width = int(new_width * ratio)
+                        
+                        if new_width != orig_width or new_height != orig_height:
+                            img = img.resize((new_width, new_height), Image.LANCZOS)
+                    
+                    # Add border if enabled
+                    if self.config.get('add_border'):
+                        border_size = self.config.get('border_size')
+                        border_color = self.config.get('border_color')
+                        
+                        # Parse hex color
+                        try:
+                            if border_color.startswith('#'):
+                                border_color = border_color[1:]
+                            r = int(border_color[0:2], 16)
+                            g = int(border_color[2:4], 16)
+                            b = int(border_color[4:6], 16)
+                            color = (r, g, b)
+                        except:
+                            color = (255, 255, 255)
+                        
+                        new_width = img.width + (border_size * 2)
+                        new_height = img.height + (border_size * 2)
+                        bordered_img = Image.new('RGB', (new_width, new_height), color)
+                        bordered_img.paste(img, (border_size, border_size))
+                        img = bordered_img
+                    
                     # Determine save location
                     base_folder = Path(self.config.get('save_folder'))
-                    doc_name = self.get_document_name(window_title)
                     
                     # Check for session folder
                     session_folder = self.session_manager.get_session_folder()
                     if session_folder:
-                        save_folder = session_folder / doc_name
-                    elif self.config.get('organize_by_document'):
-                        save_folder = base_folder / doc_name
+                        save_folder = session_folder
                     else:
                         save_folder = base_folder
                     
+                    # Date-based organization
+                    if self.config.get('organize_by_date'):
+                        date_format = self.config.get('date_folder_format')
+                        now = datetime.now()
+                        if date_format == 'monthly':
+                            date_folder = now.strftime('%Y-%m')
+                        elif date_format == 'weekly':
+                            date_folder = now.strftime('%Y-W%W')
+                        else:  # daily
+                            date_folder = now.strftime('%Y-%m-%d')
+                        save_folder = save_folder / date_folder
+                    
+                    # Document-based organization
+                    if self.config.get('organize_by_document'):
+                        save_folder = save_folder / doc_name
+                    
+                    # Max files per folder
+                    max_files = self.config.get('max_files_per_folder')
+                    if max_files > 0:
+                        folder_key = str(save_folder)
+                        current_count = self.folder_file_counts.get(folder_key, 0)
+                        if current_count >= max_files:
+                            subfolder_num = (current_count // max_files) + 1
+                            save_folder = save_folder / f"batch_{subfolder_num}"
+                            folder_key = str(save_folder)
+                            current_count = self.folder_file_counts.get(folder_key, 0)
+                        self.folder_file_counts[folder_key] = current_count + 1
+                    
                     save_folder.mkdir(parents=True, exist_ok=True)
                     
-                    # Generate filename with timestamp
-                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")[:-3]
+                    # Generate filename using template
+                    template = self.config.get('filename_template')
+                    base_filename = parse_filename_template(template, doc_name, self.config)
+                    
                     self.screenshot_count += 1
+                    
+                    # Update document capture count
+                    self.document_capture_counts[doc_name] = self.document_capture_counts.get(doc_name, 0) + 1
                     
                     # Determine format and save
                     img_format = self.config.get('image_format')
                     
                     if img_format == 'jpeg':
-                        filename = f"{doc_name}_{timestamp}.jpg"
+                        filename = f"{base_filename}.jpg"
                         filepath = save_folder / filename
-                        # Convert to PIL Image and save as JPEG
-                        img = Image.frombytes("RGB", screenshot.size, screenshot.bgra, "raw", "BGRX")
                         img.save(str(filepath), "JPEG", quality=self.config.get('jpeg_quality'))
-                    else:
-                        filename = f"{doc_name}_{timestamp}.png"
+                    elif img_format == 'webp':
+                        filename = f"{base_filename}.webp"
                         filepath = save_folder / filename
-                        mss.tools.to_png(screenshot.rgb, screenshot.size, output=str(filepath))
+                        img.save(str(filepath), "WEBP", quality=self.config.get('jpeg_quality'))
+                    else:  # png
+                        filename = f"{base_filename}.png"
+                        filepath = save_folder / filename
+                        img.save(str(filepath), "PNG")
                     
                     logger.info(f"Screenshot saved: {filepath}")
                     
                     # Play sound if enabled
                     if self.config.get('sound_enabled'):
-                        play_capture_sound()
+                        play_capture_sound(self.config)
                     
                     # Record in recent captures (limit to 50)
                     self.recent_captures.append({
@@ -665,6 +885,22 @@ class AcrobatMonitor:
         
         return ctrl_pressed and shift_pressed and p_pressed
     
+    def check_open_folder_hotkey(self):
+        """Check if open folder hotkey is pressed."""
+        ctrl_pressed = keyboard.Key.ctrl_l in self.current_keys or keyboard.Key.ctrl_r in self.current_keys
+        shift_pressed = keyboard.Key.shift in self.current_keys or keyboard.Key.shift_r in self.current_keys
+        o_pressed = keyboard.KeyCode.from_char('o') in self.current_keys
+        
+        return ctrl_pressed and shift_pressed and o_pressed
+    
+    def check_open_settings_hotkey(self):
+        """Check if open settings hotkey is pressed."""
+        ctrl_pressed = keyboard.Key.ctrl_l in self.current_keys or keyboard.Key.ctrl_r in self.current_keys
+        shift_pressed = keyboard.Key.shift in self.current_keys or keyboard.Key.shift_r in self.current_keys
+        comma_pressed = keyboard.KeyCode.from_char(',') in self.current_keys
+        
+        return ctrl_pressed and shift_pressed and comma_pressed
+    
     def toggle_pause(self):
         """Toggle pause/resume state."""
         self.paused = not self.paused
@@ -687,6 +923,16 @@ class AcrobatMonitor:
         # Check for pause/resume hotkey (Ctrl+Shift+P)
         if self.check_pause_hotkey():
             self.toggle_pause()
+            return
+        
+        # Check for open folder hotkey (Ctrl+Shift+O)
+        if self.check_open_folder_hotkey() and self.on_open_folder:
+            threading.Thread(target=self.on_open_folder, daemon=True).start()
+            return
+        
+        # Check for open settings hotkey (Ctrl+Shift+,)
+        if self.check_open_settings_hotkey() and self.on_open_settings:
+            threading.Thread(target=self.on_open_settings, daemon=True).start()
             return
         
         if not self.config.get('enabled') or self.paused:
@@ -716,6 +962,31 @@ class AcrobatMonitor:
         if not is_active:
             return
         
+        # Accumulate scroll distance
+        scroll_amount = abs(dy) * 30  # Approximate pixels per scroll tick
+        self.accumulated_scroll += scroll_amount
+        
+        # Check if we've scrolled enough
+        min_scroll = self.config.get('min_scroll_distance')
+        if self.accumulated_scroll >= min_scroll:
+            self.accumulated_scroll = 0
+            self.schedule_capture()
+    
+    def on_click(self, x, y, button, pressed):
+        """Handle mouse click events."""
+        if not pressed:  # Only on button press, not release
+            return
+        
+        if not self.config.get('enabled') or self.paused:
+            return
+        
+        if not self.config.get('capture_on_click'):
+            return
+        
+        is_active, _, _ = self.is_acrobat_active()
+        if not is_active:
+            return
+        
         self.schedule_capture()
     
     def start(self):
@@ -726,8 +997,11 @@ class AcrobatMonitor:
         )
         self.keyboard_listener.start()
         
-        # Also monitor mouse scroll for PDF navigation
-        self.mouse_listener = mouse.Listener(on_scroll=self.on_scroll)
+        # Monitor mouse scroll and optionally clicks
+        self.mouse_listener = mouse.Listener(
+            on_scroll=self.on_scroll,
+            on_click=self.on_click
+        )
         self.mouse_listener.start()
         
         logger.info("Monitoring started")
@@ -1674,6 +1948,9 @@ class SettingsWindow:
         open_log_btn = ttk.Button(btn_frame3, text="📝 View Log", command=self.open_log)
         open_log_btn.pack(side=tk.LEFT)
         
+        advanced_btn = ttk.Button(btn_frame3, text="⚙️ Advanced", command=self.show_advanced)
+        advanced_btn.pack(side=tk.LEFT, padx=10)
+        
         close_btn = ttk.Button(btn_frame3, text="Close", command=self.close)
         close_btn.pack(side=tk.RIGHT)
         
@@ -1745,6 +2022,290 @@ class SettingsWindow:
         batch_window = BatchActionsWindow(self.config)
         threading.Thread(target=batch_window.show, daemon=True).start()
     
+    def show_advanced(self):
+        advanced_window = AdvancedSettingsWindow(self.config)
+        threading.Thread(target=advanced_window.show, daemon=True).start()
+    
+    def close(self):
+        if self.window:
+            self.window.destroy()
+            self.window = None
+
+
+class AdvancedSettingsWindow:
+    """Advanced settings window with all detailed options."""
+    
+    def __init__(self, config):
+        self.config = config
+        self.window = None
+    
+    def show(self):
+        """Show the advanced settings window."""
+        import tkinter as tk
+        from tkinter import ttk, filedialog
+        
+        if self.window is not None:
+            try:
+                self.window.lift()
+                self.window.focus_force()
+                return
+            except tk.TclError:
+                self.window = None
+        
+        self.window = tk.Tk()
+        self.window.title("Advanced Settings")
+        self.window.geometry("650x700")
+        
+        # Apply theme
+        is_dark = self.config.get('dark_mode')
+        bg_color = '#1a1a2e' if is_dark else '#ffffff'
+        fg_color = '#e0e0e0' if is_dark else '#1a1a2e'
+        entry_bg = '#16213e' if is_dark else '#f5f5f5'
+        accent_color = '#4f46e5'
+        
+        self.window.configure(bg=bg_color)
+        
+        style = ttk.Style()
+        style.theme_use('clam')
+        style.configure('TFrame', background=bg_color)
+        style.configure('TLabel', background=bg_color, foreground=fg_color)
+        style.configure('TCheckbutton', background=bg_color, foreground=fg_color)
+        style.configure('TEntry', fieldbackground=entry_bg)
+        style.configure('Header.TLabel', font=('Segoe UI', 10, 'bold'), background=bg_color, foreground=accent_color)
+        style.configure('TNotebook', background=bg_color)
+        style.configure('TNotebook.Tab', padding=[10, 5])
+        
+        # Create notebook (tabs)
+        notebook = ttk.Notebook(self.window)
+        notebook.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        
+        # === Capture Tab ===
+        capture_frame = ttk.Frame(notebook, padding=15)
+        notebook.add(capture_frame, text="Capture")
+        
+        ttk.Label(capture_frame, text="Capture Behavior", style='Header.TLabel').pack(anchor=tk.W)
+        ttk.Separator(capture_frame, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=5)
+        
+        self.click_var = tk.BooleanVar(value=self.config.get('capture_on_click'))
+        ttk.Checkbutton(capture_frame, text="Capture on mouse click in Acrobat", variable=self.click_var).pack(anchor=tk.W)
+        
+        # Cooldown
+        cooldown_frame = ttk.Frame(capture_frame)
+        cooldown_frame.pack(fill=tk.X, pady=5)
+        ttk.Label(cooldown_frame, text="Capture cooldown:").pack(side=tk.LEFT)
+        self.cooldown_var = tk.StringVar(value=str(self.config.get('capture_cooldown')))
+        ttk.Spinbox(cooldown_frame, from_=0.1, to=5.0, increment=0.1, textvariable=self.cooldown_var, width=8).pack(side=tk.LEFT, padx=5)
+        ttk.Label(cooldown_frame, text="seconds").pack(side=tk.LEFT)
+        
+        # Min scroll distance
+        scroll_frame = ttk.Frame(capture_frame)
+        scroll_frame.pack(fill=tk.X, pady=5)
+        ttk.Label(scroll_frame, text="Min scroll distance:").pack(side=tk.LEFT)
+        self.min_scroll_var = tk.StringVar(value=str(self.config.get('min_scroll_distance')))
+        ttk.Spinbox(scroll_frame, from_=10, to=200, increment=10, textvariable=self.min_scroll_var, width=8).pack(side=tk.LEFT, padx=5)
+        ttk.Label(scroll_frame, text="pixels").pack(side=tk.LEFT)
+        
+        # Max captures per document
+        max_frame = ttk.Frame(capture_frame)
+        max_frame.pack(fill=tk.X, pady=5)
+        ttk.Label(max_frame, text="Max captures per document:").pack(side=tk.LEFT)
+        self.max_captures_var = tk.StringVar(value=str(self.config.get('max_captures_per_document')))
+        ttk.Spinbox(max_frame, from_=0, to=1000, increment=10, textvariable=self.max_captures_var, width=8).pack(side=tk.LEFT, padx=5)
+        ttk.Label(max_frame, text="(0 = unlimited)").pack(side=tk.LEFT)
+        
+        # === Image Tab ===
+        image_frame = ttk.Frame(notebook, padding=15)
+        notebook.add(image_frame, text="Image")
+        
+        ttk.Label(image_frame, text="Image Processing", style='Header.TLabel').pack(anchor=tk.W)
+        ttk.Separator(image_frame, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=5)
+        
+        self.grayscale_var = tk.BooleanVar(value=self.config.get('grayscale_mode'))
+        ttk.Checkbutton(image_frame, text="Convert to grayscale (smaller files)", variable=self.grayscale_var).pack(anchor=tk.W)
+        
+        self.border_var = tk.BooleanVar(value=self.config.get('add_border'))
+        ttk.Checkbutton(image_frame, text="Add border around captures", variable=self.border_var).pack(anchor=tk.W)
+        
+        border_size_frame = ttk.Frame(image_frame)
+        border_size_frame.pack(fill=tk.X, pady=5)
+        ttk.Label(border_size_frame, text="Border size:").pack(side=tk.LEFT)
+        self.border_size_var = tk.StringVar(value=str(self.config.get('border_size')))
+        ttk.Spinbox(border_size_frame, from_=1, to=50, increment=1, textvariable=self.border_size_var, width=8).pack(side=tk.LEFT, padx=5)
+        ttk.Label(border_size_frame, text="pixels").pack(side=tk.LEFT)
+        
+        border_color_frame = ttk.Frame(image_frame)
+        border_color_frame.pack(fill=tk.X, pady=5)
+        ttk.Label(border_color_frame, text="Border color:").pack(side=tk.LEFT)
+        self.border_color_var = tk.StringVar(value=self.config.get('border_color'))
+        ttk.Entry(border_color_frame, textvariable=self.border_color_var, width=10).pack(side=tk.LEFT, padx=5)
+        ttk.Label(border_color_frame, text="(hex, e.g. #ffffff)").pack(side=tk.LEFT)
+        
+        ttk.Label(image_frame, text="Max Dimensions (0 = no limit)", style='Header.TLabel').pack(anchor=tk.W, pady=(15, 0))
+        ttk.Separator(image_frame, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=5)
+        
+        max_width_frame = ttk.Frame(image_frame)
+        max_width_frame.pack(fill=tk.X, pady=5)
+        ttk.Label(max_width_frame, text="Max width:").pack(side=tk.LEFT)
+        self.max_width_var = tk.StringVar(value=str(self.config.get('max_image_width')))
+        ttk.Spinbox(max_width_frame, from_=0, to=4000, increment=100, textvariable=self.max_width_var, width=8).pack(side=tk.LEFT, padx=5)
+        ttk.Label(max_width_frame, text="pixels").pack(side=tk.LEFT)
+        
+        max_height_frame = ttk.Frame(image_frame)
+        max_height_frame.pack(fill=tk.X, pady=5)
+        ttk.Label(max_height_frame, text="Max height:").pack(side=tk.LEFT)
+        self.max_height_var = tk.StringVar(value=str(self.config.get('max_image_height')))
+        ttk.Spinbox(max_height_frame, from_=0, to=4000, increment=100, textvariable=self.max_height_var, width=8).pack(side=tk.LEFT, padx=5)
+        ttk.Label(max_height_frame, text="pixels").pack(side=tk.LEFT)
+        
+        # === Files Tab ===
+        files_frame = ttk.Frame(notebook, padding=15)
+        notebook.add(files_frame, text="Files")
+        
+        ttk.Label(files_frame, text="File Organization", style='Header.TLabel').pack(anchor=tk.W)
+        ttk.Separator(files_frame, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=5)
+        
+        self.date_org_var = tk.BooleanVar(value=self.config.get('organize_by_date'))
+        ttk.Checkbutton(files_frame, text="Organize by date", variable=self.date_org_var).pack(anchor=tk.W)
+        
+        date_format_frame = ttk.Frame(files_frame)
+        date_format_frame.pack(fill=tk.X, pady=5)
+        ttk.Label(date_format_frame, text="Date folder format:").pack(side=tk.LEFT)
+        self.date_format_var = tk.StringVar(value=self.config.get('date_folder_format'))
+        ttk.Radiobutton(date_format_frame, text="Daily", variable=self.date_format_var, value='daily').pack(side=tk.LEFT, padx=5)
+        ttk.Radiobutton(date_format_frame, text="Weekly", variable=self.date_format_var, value='weekly').pack(side=tk.LEFT, padx=5)
+        ttk.Radiobutton(date_format_frame, text="Monthly", variable=self.date_format_var, value='monthly').pack(side=tk.LEFT, padx=5)
+        
+        max_files_frame = ttk.Frame(files_frame)
+        max_files_frame.pack(fill=tk.X, pady=5)
+        ttk.Label(max_files_frame, text="Max files per folder:").pack(side=tk.LEFT)
+        self.max_files_var = tk.StringVar(value=str(self.config.get('max_files_per_folder')))
+        ttk.Spinbox(max_files_frame, from_=0, to=1000, increment=50, textvariable=self.max_files_var, width=8).pack(side=tk.LEFT, padx=5)
+        ttk.Label(max_files_frame, text="(0 = unlimited)").pack(side=tk.LEFT)
+        
+        ttk.Label(files_frame, text="Filename Template", style='Header.TLabel').pack(anchor=tk.W, pady=(15, 0))
+        ttk.Separator(files_frame, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=5)
+        
+        self.template_var = tk.StringVar(value=self.config.get('filename_template'))
+        ttk.Entry(files_frame, textvariable=self.template_var, width=40).pack(anchor=tk.W, pady=5)
+        ttk.Label(files_frame, text="Variables: {document}, {date}, {time}, {datetime}, {year}, {month}, {day}", font=('Segoe UI', 8)).pack(anchor=tk.W)
+        
+        # === Filters Tab ===
+        filters_frame = ttk.Frame(notebook, padding=15)
+        notebook.add(filters_frame, text="Filters")
+        
+        ttk.Label(filters_frame, text="Document Filters", style='Header.TLabel').pack(anchor=tk.W)
+        ttk.Separator(filters_frame, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=5)
+        
+        ttk.Label(filters_frame, text="Whitelist (only capture these, comma-separated):").pack(anchor=tk.W)
+        self.whitelist_var = tk.StringVar(value=self.config.get('filename_whitelist'))
+        ttk.Entry(filters_frame, textvariable=self.whitelist_var, width=50).pack(anchor=tk.W, pady=5)
+        
+        ttk.Label(filters_frame, text="Blacklist (never capture these, comma-separated):").pack(anchor=tk.W)
+        self.blacklist_var = tk.StringVar(value=self.config.get('filename_blacklist'))
+        ttk.Entry(filters_frame, textvariable=self.blacklist_var, width=50).pack(anchor=tk.W, pady=5)
+        
+        ttk.Label(filters_frame, text="Window Size Filters", style='Header.TLabel').pack(anchor=tk.W, pady=(15, 0))
+        ttk.Separator(filters_frame, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=5)
+        
+        min_w_frame = ttk.Frame(filters_frame)
+        min_w_frame.pack(fill=tk.X, pady=5)
+        ttk.Label(min_w_frame, text="Min window width:").pack(side=tk.LEFT)
+        self.min_win_w_var = tk.StringVar(value=str(self.config.get('min_window_width')))
+        ttk.Spinbox(min_w_frame, from_=0, to=1000, increment=50, textvariable=self.min_win_w_var, width=8).pack(side=tk.LEFT, padx=5)
+        ttk.Label(min_w_frame, text="pixels").pack(side=tk.LEFT)
+        
+        min_h_frame = ttk.Frame(filters_frame)
+        min_h_frame.pack(fill=tk.X, pady=5)
+        ttk.Label(min_h_frame, text="Min window height:").pack(side=tk.LEFT)
+        self.min_win_h_var = tk.StringVar(value=str(self.config.get('min_window_height')))
+        ttk.Spinbox(min_h_frame, from_=0, to=1000, increment=50, textvariable=self.min_win_h_var, width=8).pack(side=tk.LEFT, padx=5)
+        ttk.Label(min_h_frame, text="pixels").pack(side=tk.LEFT)
+        
+        # === Notifications Tab ===
+        notif_frame = ttk.Frame(notebook, padding=15)
+        notebook.add(notif_frame, text="Notifications")
+        
+        ttk.Label(notif_frame, text="Notification Settings", style='Header.TLabel').pack(anchor=tk.W)
+        ttk.Separator(notif_frame, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=5)
+        
+        dur_frame = ttk.Frame(notif_frame)
+        dur_frame.pack(fill=tk.X, pady=5)
+        ttk.Label(dur_frame, text="Notification duration:").pack(side=tk.LEFT)
+        self.notif_dur_var = tk.StringVar(value=str(self.config.get('notification_duration')))
+        ttk.Spinbox(dur_frame, from_=1, to=10, increment=1, textvariable=self.notif_dur_var, width=8).pack(side=tk.LEFT, padx=5)
+        ttk.Label(dur_frame, text="seconds").pack(side=tk.LEFT)
+        
+        vol_frame = ttk.Frame(notif_frame)
+        vol_frame.pack(fill=tk.X, pady=5)
+        ttk.Label(vol_frame, text="Sound volume:").pack(side=tk.LEFT)
+        self.volume_var = tk.StringVar(value=str(self.config.get('sound_volume')))
+        ttk.Spinbox(vol_frame, from_=0, to=100, increment=10, textvariable=self.volume_var, width=8).pack(side=tk.LEFT, padx=5)
+        ttk.Label(vol_frame, text="%").pack(side=tk.LEFT)
+        
+        ttk.Label(notif_frame, text="Custom sound file (.wav):").pack(anchor=tk.W, pady=(10, 0))
+        sound_frame = ttk.Frame(notif_frame)
+        sound_frame.pack(fill=tk.X, pady=5)
+        self.sound_file_var = tk.StringVar(value=self.config.get('custom_sound_file'))
+        ttk.Entry(sound_frame, textvariable=self.sound_file_var, width=40).pack(side=tk.LEFT)
+        ttk.Button(sound_frame, text="Browse", command=self.browse_sound).pack(side=tk.LEFT, padx=5)
+        
+        # Save/Close buttons
+        btn_frame = ttk.Frame(self.window)
+        btn_frame.pack(fill=tk.X, padx=10, pady=10)
+        
+        ttk.Button(btn_frame, text="Save All", command=self.save_all).pack(side=tk.LEFT)
+        ttk.Button(btn_frame, text="Close", command=self.close).pack(side=tk.RIGHT)
+        
+        # Center window
+        self.window.update_idletasks()
+        x = (self.window.winfo_screenwidth() // 2) - (325)
+        y = (self.window.winfo_screenheight() // 2) - (350)
+        self.window.geometry(f'+{x}+{y}')
+        
+        self.window.protocol("WM_DELETE_WINDOW", self.close)
+        self.window.mainloop()
+    
+    def browse_sound(self):
+        from tkinter import filedialog
+        file = filedialog.askopenfilename(filetypes=[("WAV files", "*.wav")])
+        if file:
+            self.sound_file_var.set(file)
+    
+    def save_all(self):
+        # Capture settings
+        self.config.set('capture_on_click', self.click_var.get())
+        self.config.set('capture_cooldown', float(self.cooldown_var.get()))
+        self.config.set('min_scroll_distance', int(self.min_scroll_var.get()))
+        self.config.set('max_captures_per_document', int(self.max_captures_var.get()))
+        
+        # Image settings
+        self.config.set('grayscale_mode', self.grayscale_var.get())
+        self.config.set('add_border', self.border_var.get())
+        self.config.set('border_size', int(self.border_size_var.get()))
+        self.config.set('border_color', self.border_color_var.get())
+        self.config.set('max_image_width', int(self.max_width_var.get()))
+        self.config.set('max_image_height', int(self.max_height_var.get()))
+        
+        # File settings
+        self.config.set('organize_by_date', self.date_org_var.get())
+        self.config.set('date_folder_format', self.date_format_var.get())
+        self.config.set('max_files_per_folder', int(self.max_files_var.get()))
+        self.config.set('filename_template', self.template_var.get())
+        
+        # Filter settings
+        self.config.set('filename_whitelist', self.whitelist_var.get())
+        self.config.set('filename_blacklist', self.blacklist_var.get())
+        self.config.set('min_window_width', int(self.min_win_w_var.get()))
+        self.config.set('min_window_height', int(self.min_win_h_var.get()))
+        
+        # Notification settings
+        self.config.set('notification_duration', int(self.notif_dur_var.get()))
+        self.config.set('sound_volume', int(self.volume_var.get()))
+        self.config.set('custom_sound_file', self.sound_file_var.get())
+        
+        logger.info("Advanced settings saved")
+        self.close()
+    
     def close(self):
         if self.window:
             self.window.destroy()
@@ -1771,7 +2332,9 @@ class PDFScreenshotTool:
             self.stats,
             self.session_manager,
             self.on_capture,
-            self.on_status_change
+            self.on_status_change,
+            self.open_folder,
+            self.open_settings
         )
         self.settings_window = SettingsWindow(self.config, self.monitor, self.stats)
         self.icon = None
