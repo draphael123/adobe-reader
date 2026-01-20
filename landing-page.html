@@ -1012,90 +1012,6 @@
             stroke-width: 2.5;
         }
 
-        /* Demo GIF Section */
-        .demo-section {
-            padding: 120px 0;
-            background: linear-gradient(180deg, var(--bg-card) 0%, var(--bg-deep) 100%);
-        }
-
-        .demo-gif-container {
-            max-width: 900px;
-            margin: 0 auto;
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 
-                0 0 0 1px rgba(255, 255, 255, 0.1),
-                0 30px 100px rgba(0, 0, 0, 0.5);
-            position: relative;
-        }
-
-        .demo-gif-container img,
-        .demo-gif-container video {
-            width: 100%;
-            display: block;
-        }
-
-        .demo-gif-placeholder {
-            aspect-ratio: 16/10;
-            background: linear-gradient(135deg, var(--bg-elevated) 0%, var(--bg-card) 100%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 24px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .demo-gif-placeholder::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: 
-                linear-gradient(90deg, transparent 0%, rgba(249, 115, 22, 0.1) 50%, transparent 100%);
-            animation: shimmer 2s infinite;
-        }
-
-        @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
-
-        .demo-play-btn {
-            width: 80px;
-            height: 80px;
-            background: var(--accent);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 8px 40px var(--accent-glow);
-            z-index: 1;
-            cursor: pointer;
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-
-        .demo-play-btn:hover {
-            transform: scale(1.1);
-            box-shadow: 0 12px 50px var(--accent-glow);
-        }
-
-        .demo-play-btn svg {
-            width: 32px;
-            height: 32px;
-            fill: white;
-            margin-left: 4px;
-        }
-
-        .demo-gif-placeholder span {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            z-index: 1;
-        }
-
         /* Use Cases */
         .use-cases {
             padding: 120px 0;
@@ -1485,7 +1401,6 @@
                 <nav>
                     <ul class="nav-links">
                         <li><a href="#features">Features</a></li>
-                        <li><a href="#demo">Demo</a></li>
                         <li><a href="#use-cases">Use Cases</a></li>
                         <li><a href="#technical">Technical</a></li>
                         <li><a href="#changelog">Changelog</a></li>
@@ -1503,7 +1418,6 @@
     <nav class="mobile-nav" id="mobileNav">
         <ul>
             <li><a href="#features" class="mobile-nav-link">Features</a></li>
-            <li><a href="#demo" class="mobile-nav-link">Demo</a></li>
             <li><a href="#use-cases" class="mobile-nav-link">Use Cases</a></li>
             <li><a href="#technical" class="mobile-nav-link">Technical</a></li>
             <li><a href="#changelog" class="mobile-nav-link">Changelog</a></li>
@@ -1620,28 +1534,6 @@
                         </div>
                         <h3>Compliance Ready</h3>
                         <p>Perfect for creating audit trails, documenting form completion, or maintaining records for compliance requirements.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Demo Section -->
-        <section class="demo-section" id="demo">
-            <div class="container">
-                <div class="section-header animate-on-scroll">
-                    <span class="section-label">See It In Action</span>
-                    <h2>Watch the Demo</h2>
-                    <p>See how easy it is to automatically capture PDF pages as you navigate.</p>
-                </div>
-                <div class="demo-gif-container animate-on-scroll">
-                    <!-- Replace this placeholder with your actual GIF or video -->
-                    <!-- <img src="assets/demo.gif" alt="PDF Screenshot Tool Demo"> -->
-                    <!-- Or use video: <video src="assets/demo.mp4" autoplay loop muted playsinline></video> -->
-                    <div class="demo-gif-placeholder">
-                        <div class="demo-play-btn" onclick="alert('Replace this with your demo GIF or video in assets/demo.gif')">
-                            <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                        </div>
-                        <span>Click to see the demo • Replace with assets/demo.gif</span>
                     </div>
                 </div>
             </div>
