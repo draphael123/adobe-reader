@@ -24,6 +24,66 @@ import mss
 import mss.tools
 import json
 
+# Single instance check using Windows mutex
+SINGLE_INSTANCE_MUTEX = None
+
+def check_single_instance():
+    """Ensure only one instance of the application runs at a time."""
+    global SINGLE_INSTANCE_MUTEX
+    
+    mutex_name = "PDFScreenshotTool_SingleInstance_Mutex"
+    
+    try:
+        # Try to create a named mutex
+        SINGLE_INSTANCE_MUTEX = ctypes.windll.kernel32.CreateMutexW(None, False, mutex_name)
+        last_error = ctypes.windll.kernel32.GetLastError()
+        
+        # ERROR_ALREADY_EXISTS = 183
+        if last_error == 183:
+            # Another instance is running - show message
+            show_already_running_message()
+            sys.exit(0)
+            
+    except Exception as e:
+        # If mutex check fails, continue anyway
+        pass
+
+
+def show_already_running_message():
+    """Show a message that the app is already running."""
+    try:
+        import tkinter as tk
+        from tkinter import messagebox
+        
+        # Create hidden root window
+        root = tk.Tk()
+        root.withdraw()
+        root.attributes('-topmost', True)
+        
+        messagebox.showinfo(
+            "PDF Screenshot Tool",
+            "PDF Screenshot Tool is already running!\n\n"
+            "Look for the camera icon in your system tray\n"
+            "(bottom-right corner of your screen, near the clock).\n\n"
+            "Right-click the icon to access settings or quit.",
+            parent=root
+        )
+        
+        root.destroy()
+    except Exception:
+        # Fallback to Windows message box if tkinter fails
+        ctypes.windll.user32.MessageBoxW(
+            0,
+            "PDF Screenshot Tool is already running!\n\n"
+            "Look for the camera icon in your system tray.",
+            "PDF Screenshot Tool",
+            0x40  # MB_ICONINFORMATION
+        )
+
+
+# Check for single instance before anything else
+check_single_instance()
+
 # Enable DPI awareness for correct screenshots on high-DPI displays
 try:
     ctypes.windll.shcore.SetProcessDpiAwareness(2)  # Per-monitor DPI aware
