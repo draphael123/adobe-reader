@@ -2,47 +2,23 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
   "name": "pdf-screenshot-tool",
-  "framework": null,
   "headers": [
     {
       "source": "/PDFScreenshotTool.zip",
       "headers": [
-        {
-          "key": "Content-Type",
-          "value": "application/zip"
-        },
-        {
-          "key": "Content-Disposition",
-          "value": "attachment; filename=PDFScreenshotTool.zip"
-        },
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=0, must-revalidate"
-        }
+        { "key": "Content-Type", "value": "application/zip" },
+        { "key": "Content-Disposition", "value": "attachment; filename=PDFScreenshotTool.zip" }
       ]
     },
     {
       "source": "/PDFScreenshotTool.exe",
       "headers": [
-        {
-          "key": "Content-Type",
-          "value": "application/octet-stream"
-        },
-        {
-          "key": "Content-Disposition",
-          "value": "attachment; filename=PDFScreenshotTool.exe"
-        },
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=0, must-revalidate"
-        }
+        { "key": "Content-Type", "value": "application/octet-stream" },
+        { "key": "Content-Disposition", "value": "attachment; filename=PDFScreenshotTool.exe" }
       ]
     }
   ],
   "rewrites": [
-    {
-      "source": "/download",
-      "destination": "/PDFScreenshotTool.zip"
-    }
+    { "source": "/download", "destination": "/PDFScreenshotTool.zip" }
   ]
 }

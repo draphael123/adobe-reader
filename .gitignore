@@ -1,8 +1,10 @@
-# Build outputs (rebuilt by CI)
+# Build outputs
 build/
-dist/
 public/
 *.spec.bak
+
+# Keep dist/ and root exe/zip for Vercel deployment
+# dist/  (commented out - needed for deployment)
 
 # Python
 __pycache__/
