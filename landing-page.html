@@ -1012,10 +1012,382 @@
             stroke-width: 2.5;
         }
 
+        /* Demo GIF Section */
+        .demo-section {
+            padding: 120px 0;
+            background: linear-gradient(180deg, var(--bg-card) 0%, var(--bg-deep) 100%);
+        }
+
+        .demo-gif-container {
+            max-width: 900px;
+            margin: 0 auto;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 
+                0 0 0 1px rgba(255, 255, 255, 0.1),
+                0 30px 100px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+
+        .demo-gif-container img,
+        .demo-gif-container video {
+            width: 100%;
+            display: block;
+        }
+
+        .demo-gif-placeholder {
+            aspect-ratio: 16/10;
+            background: linear-gradient(135deg, var(--bg-elevated) 0%, var(--bg-card) 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .demo-gif-placeholder::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                linear-gradient(90deg, transparent 0%, rgba(249, 115, 22, 0.1) 50%, transparent 100%);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .demo-play-btn {
+            width: 80px;
+            height: 80px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 40px var(--accent-glow);
+            z-index: 1;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .demo-play-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 50px var(--accent-glow);
+        }
+
+        .demo-play-btn svg {
+            width: 32px;
+            height: 32px;
+            fill: white;
+            margin-left: 4px;
+        }
+
+        .demo-gif-placeholder span {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            z-index: 1;
+        }
+
+        /* Use Cases */
+        .use-cases {
+            padding: 120px 0;
+        }
+
+        .use-cases-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+        }
+
+        .use-case-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 32px;
+            text-align: center;
+            transition: all 0.4s;
+        }
+
+        .use-case-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--accent);
+            box-shadow: 0 20px 60px rgba(249, 115, 22, 0.15);
+        }
+
+        .use-case-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .use-case-card h3 {
+            font-size: 1.15rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .use-case-card p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        /* Technical Details */
+        .tech-details {
+            padding: 120px 0;
+            background: var(--bg-card);
+        }
+
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 48px;
+        }
+
+        .tech-card {
+            background: var(--bg-deep);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 36px;
+        }
+
+        .tech-card h3 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .tech-card h3 svg {
+            width: 28px;
+            height: 28px;
+            color: var(--accent);
+        }
+
+        .tech-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .tech-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tech-list li:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .tech-label {
+            color: var(--text-secondary);
+        }
+
+        .tech-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            background: var(--bg-elevated);
+            padding: 6px 12px;
+            border-radius: 8px;
+        }
+
+        .keyboard-shortcuts {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .shortcut-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            background: var(--bg-elevated);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .shortcut-keys {
+            display: flex;
+            gap: 6px;
+        }
+
+        .key {
+            background: var(--bg-deep);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            border: 1px solid var(--border-light);
+            min-width: 36px;
+            text-align: center;
+        }
+
+        .shortcut-desc {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* Changelog */
+        .changelog {
+            padding: 120px 0;
+        }
+
+        .changelog-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .changelog-item {
+            position: relative;
+            padding-left: 40px;
+            padding-bottom: 48px;
+        }
+
+        .changelog-item:last-child {
+            padding-bottom: 0;
+        }
+
+        .changelog-item::before {
+            content: '';
+            position: absolute;
+            left: 8px;
+            top: 8px;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(180deg, var(--accent), transparent);
+        }
+
+        .changelog-item:last-child::before {
+            display: none;
+        }
+
+        .changelog-dot {
+            position: absolute;
+            left: 0;
+            top: 4px;
+            width: 18px;
+            height: 18px;
+            background: var(--accent);
+            border-radius: 50%;
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        .changelog-version {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .version-tag {
+            background: linear-gradient(135deg, var(--accent), #ea580c);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 100px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .version-date {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .version-badge {
+            background: var(--success);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 100px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .changelog-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .changelog-features {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .changelog-features li {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .changelog-features li svg {
+            width: 20px;
+            height: 20px;
+            color: var(--accent);
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .feature-tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-right: 8px;
+        }
+
+        .feature-tag.new {
+            background: rgba(34, 197, 94, 0.2);
+            color: var(--success);
+        }
+
+        .feature-tag.improved {
+            background: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+        }
+
+        .feature-tag.fixed {
+            background: rgba(249, 115, 22, 0.2);
+            color: var(--accent);
+        }
+
         /* Responsive */
         @media (max-width: 1024px) {
             .features-grid {
                 grid-template-columns: repeat(2, 1fr);
+            }
+
+            .use-cases-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .tech-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .keyboard-shortcuts {
+                grid-template-columns: 1fr;
             }
         }
 
@@ -1078,6 +1450,19 @@
                 bottom: 20px;
                 right: 20px;
             }
+
+            .use-cases-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .changelog-item {
+                padding-left: 32px;
+            }
+
+            .shortcut-item {
+                flex-direction: column;
+                text-align: center;
+            }
         }
     </style>
 </head>
@@ -1100,9 +1485,10 @@
                 <nav>
                     <ul class="nav-links">
                         <li><a href="#features">Features</a></li>
-                        <li><a href="#how-it-works">How It Works</a></li>
-                        <li><a href="#installation">Installation</a></li>
-                        <li><a href="#faq">FAQ</a></li>
+                        <li><a href="#demo">Demo</a></li>
+                        <li><a href="#use-cases">Use Cases</a></li>
+                        <li><a href="#technical">Technical</a></li>
+                        <li><a href="#changelog">Changelog</a></li>
                     </ul>
                 </nav>
                 <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle menu">
@@ -1117,9 +1503,10 @@
     <nav class="mobile-nav" id="mobileNav">
         <ul>
             <li><a href="#features" class="mobile-nav-link">Features</a></li>
-            <li><a href="#how-it-works" class="mobile-nav-link">How It Works</a></li>
-            <li><a href="#installation" class="mobile-nav-link">Installation</a></li>
-            <li><a href="#faq" class="mobile-nav-link">FAQ</a></li>
+            <li><a href="#demo" class="mobile-nav-link">Demo</a></li>
+            <li><a href="#use-cases" class="mobile-nav-link">Use Cases</a></li>
+            <li><a href="#technical" class="mobile-nav-link">Technical</a></li>
+            <li><a href="#changelog" class="mobile-nav-link">Changelog</a></li>
         </ul>
     </nav>
 
@@ -1129,7 +1516,7 @@
                 <div class="hero-content">
                     <div class="badge">
                         <span class="badge-dot"></span>
-                        Windows App • v1.0
+                        Windows App • v2.0
                     </div>
                     <h1>Automatic Screenshots<br>for <span class="highlight">PDF Navigation</span></h1>
                     <p class="hero-subtitle">
@@ -1233,6 +1620,81 @@
                         </div>
                         <h3>Compliance Ready</h3>
                         <p>Perfect for creating audit trails, documenting form completion, or maintaining records for compliance requirements.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Demo Section -->
+        <section class="demo-section" id="demo">
+            <div class="container">
+                <div class="section-header animate-on-scroll">
+                    <span class="section-label">See It In Action</span>
+                    <h2>Watch the Demo</h2>
+                    <p>See how easy it is to automatically capture PDF pages as you navigate.</p>
+                </div>
+                <div class="demo-gif-container animate-on-scroll">
+                    <!-- Replace this placeholder with your actual GIF or video -->
+                    <!-- <img src="assets/demo.gif" alt="PDF Screenshot Tool Demo"> -->
+                    <!-- Or use video: <video src="assets/demo.mp4" autoplay loop muted playsinline></video> -->
+                    <div class="demo-gif-placeholder">
+                        <div class="demo-play-btn" onclick="alert('Replace this with your demo GIF or video in assets/demo.gif')">
+                            <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                        </div>
+                        <span>Click to see the demo • Replace with assets/demo.gif</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Use Cases -->
+        <section class="use-cases" id="use-cases">
+            <div class="container">
+                <div class="section-header animate-on-scroll">
+                    <span class="section-label">Use Cases</span>
+                    <h2>Perfect For Every Scenario</h2>
+                    <p>From compliance to research, see how professionals use PDF Screenshot Tool.</p>
+                </div>
+                <div class="use-cases-grid">
+                    <div class="use-case-card animate-on-scroll stagger-1">
+                        <span class="use-case-icon">📋</span>
+                        <h3>Compliance & Audit</h3>
+                        <p>Create timestamped evidence trails for regulatory compliance. Document every page viewed during reviews.</p>
+                    </div>
+                    <div class="use-case-card animate-on-scroll stagger-2">
+                        <span class="use-case-icon">📚</span>
+                        <h3>Research & Study</h3>
+                        <p>Capture key pages from academic papers and textbooks. Build visual reference libraries effortlessly.</p>
+                    </div>
+                    <div class="use-case-card animate-on-scroll stagger-3">
+                        <span class="use-case-icon">⚖️</span>
+                        <h3>Legal Review</h3>
+                        <p>Document contract reviews page by page. Maintain records of what was viewed and when.</p>
+                    </div>
+                    <div class="use-case-card animate-on-scroll stagger-4">
+                        <span class="use-case-icon">🏢</span>
+                        <h3>Corporate Training</h3>
+                        <p>Capture training materials for quick reference. Create visual guides from PDF manuals.</p>
+                    </div>
+                    <div class="use-case-card animate-on-scroll stagger-5">
+                        <span class="use-case-icon">📝</span>
+                        <h3>Form Documentation</h3>
+                        <p>Record filled forms before submission. Keep visual backups of important documents.</p>
+                    </div>
+                    <div class="use-case-card animate-on-scroll stagger-6">
+                        <span class="use-case-icon">🔬</span>
+                        <h3>Quality Assurance</h3>
+                        <p>Document PDF review processes. Capture evidence of document verification workflows.</p>
+                    </div>
+                    <div class="use-case-card animate-on-scroll stagger-1">
+                        <span class="use-case-icon">🎓</span>
+                        <h3>Education</h3>
+                        <p>Teachers can capture lecture slides. Students can save important textbook pages.</p>
+                    </div>
+                    <div class="use-case-card animate-on-scroll stagger-2">
+                        <span class="use-case-icon">💼</span>
+                        <h3>Client Presentations</h3>
+                        <p>Extract key visuals from PDF proposals. Build presentation materials quickly.</p>
                     </div>
                 </div>
             </div>
@@ -1410,6 +1872,296 @@
                         <div class="faq-answer">
                             <p>Yes! The tool is perfect for creating audit trails, documenting form completion, and maintaining records for compliance requirements. Each screenshot is timestamped.</p>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Technical Details -->
+        <section class="tech-details" id="technical">
+            <div class="container">
+                <div class="section-header animate-on-scroll">
+                    <span class="section-label">Technical Details</span>
+                    <h2>Under the Hood</h2>
+                    <p>Lightweight, efficient, and built for reliability.</p>
+                </div>
+                <div class="tech-grid">
+                    <div class="tech-card animate-on-scroll">
+                        <h3>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                            System Requirements
+                        </h3>
+                        <ul class="tech-list">
+                            <li>
+                                <span class="tech-label">Operating System</span>
+                                <span class="tech-value">Windows 10/11</span>
+                            </li>
+                            <li>
+                                <span class="tech-label">Memory</span>
+                                <span class="tech-value">~50 MB RAM</span>
+                            </li>
+                            <li>
+                                <span class="tech-label">Disk Space</span>
+                                <span class="tech-value">~25 MB</span>
+                            </li>
+                            <li>
+                                <span class="tech-label">PDF Reader</span>
+                                <span class="tech-value">Adobe Acrobat/Reader</span>
+                            </li>
+                            <li>
+                                <span class="tech-label">Internet</span>
+                                <span class="tech-value">Not Required</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="tech-card animate-on-scroll">
+                        <h3>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 3a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3H6a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 3 3 0 0 0-3-3z"/></svg>
+                            Keyboard Shortcuts
+                        </h3>
+                        <div class="keyboard-shortcuts">
+                            <div class="shortcut-item">
+                                <div class="shortcut-keys">
+                                    <span class="key">Ctrl</span>
+                                    <span class="key">Shift</span>
+                                    <span class="key">S</span>
+                                </div>
+                                <span class="shortcut-desc">Manual capture</span>
+                            </div>
+                            <div class="shortcut-item">
+                                <div class="shortcut-keys">
+                                    <span class="key">Ctrl</span>
+                                    <span class="key">Shift</span>
+                                    <span class="key">P</span>
+                                </div>
+                                <span class="shortcut-desc">Pause/Resume</span>
+                            </div>
+                            <div class="shortcut-item">
+                                <div class="shortcut-keys">
+                                    <span class="key">PgUp</span>
+                                    <span class="key">PgDn</span>
+                                </div>
+                                <span class="shortcut-desc">Auto-capture trigger</span>
+                            </div>
+                            <div class="shortcut-item">
+                                <div class="shortcut-keys">
+                                    <span class="key">↑</span>
+                                    <span class="key">↓</span>
+                                    <span class="key">←</span>
+                                    <span class="key">→</span>
+                                </div>
+                                <span class="shortcut-desc">Navigation capture</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tech-card animate-on-scroll">
+                        <h3>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                            Output Formats
+                        </h3>
+                        <ul class="tech-list">
+                            <li>
+                                <span class="tech-label">PNG Format</span>
+                                <span class="tech-value">Lossless quality</span>
+                            </li>
+                            <li>
+                                <span class="tech-label">JPEG Format</span>
+                                <span class="tech-value">Configurable quality</span>
+                            </li>
+                            <li>
+                                <span class="tech-label">Export to PDF</span>
+                                <span class="tech-value">Combine all captures</span>
+                            </li>
+                            <li>
+                                <span class="tech-label">Export to ZIP</span>
+                                <span class="tech-value">Batch archive</span>
+                            </li>
+                            <li>
+                                <span class="tech-label">Naming</span>
+                                <span class="tech-value">DocName_Timestamp</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="tech-card animate-on-scroll">
+                        <h3>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                            Privacy & Security
+                        </h3>
+                        <ul class="tech-list">
+                            <li>
+                                <span class="tech-label">Data Storage</span>
+                                <span class="tech-value">100% Local</span>
+                            </li>
+                            <li>
+                                <span class="tech-label">Network Access</span>
+                                <span class="tech-value">None Required</span>
+                            </li>
+                            <li>
+                                <span class="tech-label">Telemetry</span>
+                                <span class="tech-value">None</span>
+                            </li>
+                            <li>
+                                <span class="tech-label">Portable Mode</span>
+                                <span class="tech-value">Available</span>
+                            </li>
+                            <li>
+                                <span class="tech-label">Auto-Cleanup</span>
+                                <span class="tech-value">Configurable</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Changelog -->
+        <section class="changelog" id="changelog">
+            <div class="container">
+                <div class="section-header animate-on-scroll">
+                    <span class="section-label">Changelog</span>
+                    <h2>What's New</h2>
+                    <p>Stay updated with the latest features and improvements.</p>
+                </div>
+                <div class="changelog-container">
+                    <div class="changelog-item animate-on-scroll">
+                        <div class="changelog-dot"></div>
+                        <div class="changelog-version">
+                            <span class="version-tag">v2.0.0</span>
+                            <span class="version-date">January 2026</span>
+                            <span class="version-badge">Latest</span>
+                        </div>
+                        <h4 class="changelog-title">Major Feature Update</h4>
+                        <ul class="changelog-features">
+                            <li>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                                <span><span class="feature-tag new">New</span>Statistics dashboard with capture analytics</span>
+                            </li>
+                            <li>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                                <span><span class="feature-tag new">New</span>Session management for organized captures</span>
+                            </li>
+                            <li>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                                <span><span class="feature-tag new">New</span>Recent captures viewer with quick access</span>
+                            </li>
+                            <li>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                                <span><span class="feature-tag new">New</span>Batch actions: Export to ZIP/PDF, cleanup tools</span>
+                            </li>
+                            <li>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                                <span><span class="feature-tag new">New</span>Sound feedback on capture (toggleable)</span>
+                            </li>
+                            <li>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                                <span><span class="feature-tag new">New</span>Pause/Resume hotkey (Ctrl+Shift+P)</span>
+                            </li>
+                            <li>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                                <span><span class="feature-tag new">New</span>Dark mode UI throughout the app</span>
+                            </li>
+                            <li>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                                <span><span class="feature-tag new">New</span>Auto-cleanup for old screenshots</span>
+                            </li>
+                            <li>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                                <span><span class="feature-tag new">New</span>Capture document area only option</span>
+                            </li>
+                            <li>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                                <span><span class="feature-tag new">New</span>Portable mode support</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="changelog-item animate-on-scroll">
+                        <div class="changelog-dot"></div>
+                        <div class="changelog-version">
+                            <span class="version-tag">v1.5.0</span>
+                            <span class="version-date">January 2026</span>
+                        </div>
+                        <h4 class="changelog-title">PDF Detection & Notifications</h4>
+                        <ul class="changelog-features">
+                            <li>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                                <span><span class="feature-tag improved">Improved</span>Only capture when actual PDF is open</span>
+                            </li>
+                            <li>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                                <span><span class="feature-tag new">New</span>Toggle notifications on/off in settings</span>
+                            </li>
+                            <li>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                                <span><span class="feature-tag fixed">Fixed</span>Setup wizard button visibility</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="changelog-item animate-on-scroll">
+                        <div class="changelog-dot"></div>
+                        <div class="changelog-version">
+                            <span class="version-tag">v1.4.0</span>
+                            <span class="version-date">January 2026</span>
+                        </div>
+                        <h4 class="changelog-title">First-Run Setup Wizard</h4>
+                        <ul class="changelog-features">
+                            <li>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                                <span><span class="feature-tag new">New</span>Guided setup wizard on first launch</span>
+                            </li>
+                            <li>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                                <span><span class="feature-tag new">New</span>How-to-use instructions included</span>
+                            </li>
+                            <li>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                                <span><span class="feature-tag improved">Improved</span>Better onboarding experience</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="changelog-item animate-on-scroll">
+                        <div class="changelog-dot"></div>
+                        <div class="changelog-version">
+                            <span class="version-tag">v1.0.0</span>
+                            <span class="version-date">January 2026</span>
+                        </div>
+                        <h4 class="changelog-title">Initial Release</h4>
+                        <ul class="changelog-features">
+                            <li>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                                <span>Automatic screenshot capture on page navigation</span>
+                            </li>
+                            <li>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                                <span>System tray integration with status colors</span>
+                            </li>
+                            <li>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                                <span>Mouse scroll capture support</span>
+                            </li>
+                            <li>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                                <span>Manual capture hotkey (Ctrl+Shift+S)</span>
+                            </li>
+                            <li>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                                <span>PNG/JPEG format options</span>
+                            </li>
+                            <li>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                                <span>Start with Windows option</span>
+                            </li>
+                            <li>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                                <span>Duplicate detection to avoid redundant captures</span>
+                            </li>
+                            <li>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                                <span>DPI awareness for high-resolution displays</span>
+                            </li>
+                        </ul>
                     </div>
                 </div>
             </div>
