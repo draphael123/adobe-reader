@@ -552,14 +552,20 @@ class AcrobatMonitor:
                 if not is_acrobat:
                     return False, "", None
                 
-                # Check if an actual PDF is open (title should contain .pdf)
-                has_pdf = '.pdf' in title.lower()
-                if not has_pdf:
-                    just_app_names = ['Adobe Acrobat Reader', 'Adobe Acrobat', 'Adobe Acrobat Reader DC', 'Adobe Acrobat DC']
-                    if title.strip() in just_app_names:
-                        return False, "", None
+                # Check if an actual PDF is open
+                # Adobe shows titles like "Document.pdf - Adobe Acrobat" or just "Document Name - Adobe Acrobat"
+                # Reject if it's JUST the app name with no document
+                just_app_names = ['Adobe Acrobat Reader', 'Adobe Acrobat', 'Adobe Acrobat Reader DC', 
+                                  'Adobe Acrobat DC', 'Adobe Acrobat Pro DC', 'Adobe Acrobat Pro',
+                                  'Home', 'Home - Adobe Acrobat Reader DC', 'Home - Adobe Acrobat DC']
                 
-                        return True, title, active_window
+                if title.strip() in just_app_names:
+                    # No document open, just the app home screen
+                    return False, "", None
+                
+                # If we get here, Acrobat is open with a document
+                # The document might or might not have .pdf in the title (Adobe sometimes hides it)
+                return True, title, active_window
         except Exception:
             pass
         return False, "", None
@@ -640,223 +646,223 @@ class AcrobatMonitor:
         with self.capture_lock:
             if self.paused and not manual:
                 return None
+        
+        is_active, window_title, window = self.is_acrobat_active()
+        
+        if not is_active or not window:
+            if manual:
+                logger.warning("Manual capture failed: Adobe Acrobat not active")
+            return None
+        
+        # Check filters
+        if not manual and not self.check_filters(window_title):
+            logger.debug(f"Document filtered out: {window_title}")
+            return None
+        
+        # Check window size
+        if not self.check_window_size(window):
+            logger.debug("Window too small to capture")
+            return None
+        
+        doc_name = self.get_document_name(window_title)
+        
+        # Check max captures per document
+        if not manual and not self.check_max_captures(doc_name):
+            logger.debug(f"Max captures reached for: {doc_name}")
+            return None
+        
+        # Check cooldown
+        current_time = time.time()
+        cooldown = self.config.get('capture_cooldown')
+        if not manual and current_time - self.last_capture_time < cooldown:
+            return None
+        
+        self.last_capture_time = current_time
+        
+        try:
+            # Get window position and size
+            if self.config.get('capture_document_only'):
+                left, top, width, height = self.get_document_area(window)
+            else:
+                left = window.left
+                top = window.top
+                width = window.width
+                height = window.height
             
-            is_active, window_title, window = self.is_acrobat_active()
+            # Handle windows partially off-screen
+            if left < 0:
+                width += left
+                left = 0
+            if top < 0:
+                height += top
+                top = 0
             
-            if not is_active or not window:
-                if manual:
-                    logger.warning("Manual capture failed: Adobe Acrobat not active")
+            # Ensure we have valid dimensions
+            if width <= 0 or height <= 0:
+                logger.warning("Invalid window dimensions")
                 return None
             
-            # Check filters
-            if not manual and not self.check_filters(window_title):
-                logger.debug(f"Document filtered out: {window_title}")
-                return None
-            
-            # Check window size
-            if not self.check_window_size(window):
-                logger.debug("Window too small to capture")
-                return None
-            
-            doc_name = self.get_document_name(window_title)
-            
-            # Check max captures per document
-            if not manual and not self.check_max_captures(doc_name):
-                logger.debug(f"Max captures reached for: {doc_name}")
-                return None
-            
-            # Check cooldown
-            current_time = time.time()
-            cooldown = self.config.get('capture_cooldown')
-            if not manual and current_time - self.last_capture_time < cooldown:
-                return None
-            
-            self.last_capture_time = current_time
-            
-            try:
-                # Get window position and size
-                if self.config.get('capture_document_only'):
-                    left, top, width, height = self.get_document_area(window)
+            # Capture the window region
+            with mss.mss() as sct:
+                monitor = {
+                    "left": left,
+                    "top": top,
+                    "width": width,
+                    "height": height
+                }
+                screenshot = sct.grab(monitor)
+                
+                # Check for duplicate screenshot (skip for manual captures)
+                if not manual:
+                    current_hash = self.get_image_hash(screenshot.rgb)
+                    if current_hash == self.last_screenshot_hash:
+                        logger.debug("Skipping duplicate screenshot")
+                        return None
+                    self.last_screenshot_hash = current_hash
+                
+                # Convert to PIL Image for processing
+                img = Image.frombytes("RGB", screenshot.size, screenshot.bgra, "raw", "BGRX")
+                
+                # Apply grayscale if enabled
+                if self.config.get('grayscale_mode'):
+                    img = img.convert('L').convert('RGB')
+                
+                # Resize if max dimensions are set
+                max_width = self.config.get('max_image_width')
+                max_height = self.config.get('max_image_height')
+                if max_width > 0 or max_height > 0:
+                    orig_width, orig_height = img.size
+                    new_width, new_height = orig_width, orig_height
+                    
+                    if max_width > 0 and orig_width > max_width:
+                        ratio = max_width / orig_width
+                        new_width = max_width
+                        new_height = int(orig_height * ratio)
+                    
+                    if max_height > 0 and new_height > max_height:
+                        ratio = max_height / new_height
+                        new_height = max_height
+                        new_width = int(new_width * ratio)
+                    
+                    if new_width != orig_width or new_height != orig_height:
+                        img = img.resize((new_width, new_height), Image.LANCZOS)
+                
+                # Add border if enabled
+                if self.config.get('add_border'):
+                    border_size = self.config.get('border_size')
+                    border_color = self.config.get('border_color')
+                    
+                    # Parse hex color
+                    try:
+                        if border_color.startswith('#'):
+                            border_color = border_color[1:]
+                        r = int(border_color[0:2], 16)
+                        g = int(border_color[2:4], 16)
+                        b = int(border_color[4:6], 16)
+                        color = (r, g, b)
+                    except:
+                        color = (255, 255, 255)
+                    
+                    new_width = img.width + (border_size * 2)
+                    new_height = img.height + (border_size * 2)
+                    bordered_img = Image.new('RGB', (new_width, new_height), color)
+                    bordered_img.paste(img, (border_size, border_size))
+                    img = bordered_img
+                
+                # Determine save location
+                base_folder = Path(self.config.get('save_folder'))
+                
+                # Check for session folder
+                session_folder = self.session_manager.get_session_folder()
+                if session_folder:
+                    save_folder = session_folder
                 else:
-                    left = window.left
-                    top = window.top
-                    width = window.width
-                    height = window.height
+                    save_folder = base_folder
                 
-                # Handle windows partially off-screen
-                if left < 0:
-                    width += left
-                    left = 0
-                if top < 0:
-                    height += top
-                    top = 0
+                # Date-based organization
+                if self.config.get('organize_by_date'):
+                    date_format = self.config.get('date_folder_format')
+                    now = datetime.now()
+                    if date_format == 'monthly':
+                        date_folder = now.strftime('%Y-%m')
+                    elif date_format == 'weekly':
+                        date_folder = now.strftime('%Y-W%W')
+                    else:  # daily
+                        date_folder = now.strftime('%Y-%m-%d')
+                    save_folder = save_folder / date_folder
                 
-                # Ensure we have valid dimensions
-                if width <= 0 or height <= 0:
-                    logger.warning("Invalid window dimensions")
-                    return None
+                # Document-based organization
+                if self.config.get('organize_by_document'):
+                    save_folder = save_folder / doc_name
                 
-                # Capture the window region
-                with mss.mss() as sct:
-                    monitor = {
-                        "left": left,
-                        "top": top,
-                        "width": width,
-                        "height": height
-                    }
-                    screenshot = sct.grab(monitor)
-                    
-                    # Check for duplicate screenshot (skip for manual captures)
-                    if not manual:
-                        current_hash = self.get_image_hash(screenshot.rgb)
-                        if current_hash == self.last_screenshot_hash:
-                            logger.debug("Skipping duplicate screenshot")
-                            return None
-                        self.last_screenshot_hash = current_hash
-                    
-                    # Convert to PIL Image for processing
-                    img = Image.frombytes("RGB", screenshot.size, screenshot.bgra, "raw", "BGRX")
-                    
-                    # Apply grayscale if enabled
-                    if self.config.get('grayscale_mode'):
-                        img = img.convert('L').convert('RGB')
-                    
-                    # Resize if max dimensions are set
-                    max_width = self.config.get('max_image_width')
-                    max_height = self.config.get('max_image_height')
-                    if max_width > 0 or max_height > 0:
-                        orig_width, orig_height = img.size
-                        new_width, new_height = orig_width, orig_height
-                        
-                        if max_width > 0 and orig_width > max_width:
-                            ratio = max_width / orig_width
-                            new_width = max_width
-                            new_height = int(orig_height * ratio)
-                        
-                        if max_height > 0 and new_height > max_height:
-                            ratio = max_height / new_height
-                            new_height = max_height
-                            new_width = int(new_width * ratio)
-                        
-                        if new_width != orig_width or new_height != orig_height:
-                            img = img.resize((new_width, new_height), Image.LANCZOS)
-                    
-                    # Add border if enabled
-                    if self.config.get('add_border'):
-                        border_size = self.config.get('border_size')
-                        border_color = self.config.get('border_color')
-                        
-                        # Parse hex color
-                        try:
-                            if border_color.startswith('#'):
-                                border_color = border_color[1:]
-                            r = int(border_color[0:2], 16)
-                            g = int(border_color[2:4], 16)
-                            b = int(border_color[4:6], 16)
-                            color = (r, g, b)
-                        except:
-                            color = (255, 255, 255)
-                        
-                        new_width = img.width + (border_size * 2)
-                        new_height = img.height + (border_size * 2)
-                        bordered_img = Image.new('RGB', (new_width, new_height), color)
-                        bordered_img.paste(img, (border_size, border_size))
-                        img = bordered_img
-                    
-                    # Determine save location
-                    base_folder = Path(self.config.get('save_folder'))
-                    
-                    # Check for session folder
-                    session_folder = self.session_manager.get_session_folder()
-                    if session_folder:
-                        save_folder = session_folder
-                    else:
-                        save_folder = base_folder
-                    
-                    # Date-based organization
-                    if self.config.get('organize_by_date'):
-                        date_format = self.config.get('date_folder_format')
-                        now = datetime.now()
-                        if date_format == 'monthly':
-                            date_folder = now.strftime('%Y-%m')
-                        elif date_format == 'weekly':
-                            date_folder = now.strftime('%Y-W%W')
-                        else:  # daily
-                            date_folder = now.strftime('%Y-%m-%d')
-                        save_folder = save_folder / date_folder
-                    
-                    # Document-based organization
-                    if self.config.get('organize_by_document'):
-                        save_folder = save_folder / doc_name
-                    
-                    # Max files per folder
-                    max_files = self.config.get('max_files_per_folder')
-                    if max_files > 0:
+                # Max files per folder
+                max_files = self.config.get('max_files_per_folder')
+                if max_files > 0:
+                    folder_key = str(save_folder)
+                    current_count = self.folder_file_counts.get(folder_key, 0)
+                    if current_count >= max_files:
+                        subfolder_num = (current_count // max_files) + 1
+                        save_folder = save_folder / f"batch_{subfolder_num}"
                         folder_key = str(save_folder)
                         current_count = self.folder_file_counts.get(folder_key, 0)
-                        if current_count >= max_files:
-                            subfolder_num = (current_count // max_files) + 1
-                            save_folder = save_folder / f"batch_{subfolder_num}"
-                            folder_key = str(save_folder)
-                            current_count = self.folder_file_counts.get(folder_key, 0)
-                        self.folder_file_counts[folder_key] = current_count + 1
-                    
-                    save_folder.mkdir(parents=True, exist_ok=True)
-                    
-                    # Generate filename using template
-                    template = self.config.get('filename_template')
-                    base_filename = parse_filename_template(template, doc_name, self.config)
-                    
-                    self.screenshot_count += 1
-                    
-                    # Update document capture count
-                    self.document_capture_counts[doc_name] = self.document_capture_counts.get(doc_name, 0) + 1
-                    
-                    # Determine format and save
-                    img_format = self.config.get('image_format')
-                    
-                    if img_format == 'jpeg':
-                        filename = f"{base_filename}.jpg"
-                        filepath = save_folder / filename
-                        img.save(str(filepath), "JPEG", quality=self.config.get('jpeg_quality'))
-                    elif img_format == 'webp':
-                        filename = f"{base_filename}.webp"
-                        filepath = save_folder / filename
-                        img.save(str(filepath), "WEBP", quality=self.config.get('jpeg_quality'))
-                    else:  # png
-                        filename = f"{base_filename}.png"
-                        filepath = save_folder / filename
-                        img.save(str(filepath), "PNG")
-                    
-                    logger.info(f"Screenshot saved: {filepath}")
-                    
-                    # Play sound if enabled
-                    if self.config.get('sound_enabled'):
-                        play_capture_sound(self.config)
-                    
-                    # Record in recent captures (limit to 50)
-                    self.recent_captures.append({
-                        'path': str(filepath),
-                        'doc_name': doc_name,
-                        'timestamp': datetime.now().isoformat()
-                    })
-                    if len(self.recent_captures) > 50:
-                        self.recent_captures = self.recent_captures[-50:]
-                    
-                    # Add to session
-                    self.session_manager.add_capture(str(filepath))
-                    
-                    # Record statistics
-                    self.stats.record_capture(str(filepath), doc_name)
-                    
-                    if self.on_capture_callback:
-                        self.on_capture_callback(str(filepath), doc_name)
-                    
-                    return str(filepath)
-                    
-            except Exception as e:
-                logger.error(f"Error capturing screenshot: {e}")
-                return None
+                    self.folder_file_counts[folder_key] = current_count + 1
+                
+                save_folder.mkdir(parents=True, exist_ok=True)
+                
+                # Generate filename using template
+                template = self.config.get('filename_template')
+                base_filename = parse_filename_template(template, doc_name, self.config)
+                
+                self.screenshot_count += 1
+                
+                # Update document capture count
+                self.document_capture_counts[doc_name] = self.document_capture_counts.get(doc_name, 0) + 1
+                
+                # Determine format and save
+                img_format = self.config.get('image_format')
+                
+                if img_format == 'jpeg':
+                    filename = f"{base_filename}.jpg"
+                    filepath = save_folder / filename
+                    img.save(str(filepath), "JPEG", quality=self.config.get('jpeg_quality'))
+                elif img_format == 'webp':
+                    filename = f"{base_filename}.webp"
+                    filepath = save_folder / filename
+                    img.save(str(filepath), "WEBP", quality=self.config.get('jpeg_quality'))
+                else:  # png
+                    filename = f"{base_filename}.png"
+                    filepath = save_folder / filename
+                    img.save(str(filepath), "PNG")
+                
+                logger.info(f"Screenshot saved: {filepath}")
+                
+                # Play sound if enabled
+                if self.config.get('sound_enabled'):
+                    play_capture_sound(self.config)
+                
+                # Record in recent captures (limit to 50)
+                self.recent_captures.append({
+                    'path': str(filepath),
+                    'doc_name': doc_name,
+                    'timestamp': datetime.now().isoformat()
+                })
+                if len(self.recent_captures) > 50:
+                    self.recent_captures = self.recent_captures[-50:]
+                
+                # Add to session
+                self.session_manager.add_capture(str(filepath))
+                
+                # Record statistics
+                self.stats.record_capture(str(filepath), doc_name)
+                
+                if self.on_capture_callback:
+                    self.on_capture_callback(str(filepath), doc_name)
+                
+                return str(filepath)
+                
+        except Exception as e:
+            logger.error(f"Error capturing screenshot: {e}")
+            return None
     
     def schedule_capture(self):
         """Schedule a screenshot capture with delay (non-blocking)."""
