@@ -25,7 +25,7 @@
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -34,18 +34,26 @@
         }
 
         :root {
-            --bg-deep: #0c0a09;
-            --bg-card: #1c1917;
-            --bg-elevated: #292524;
-            --text-primary: #fafaf9;
-            --text-secondary: #a8a29e;
-            --text-muted: #78716c;
-            --accent: #f97316;
-            --accent-hover: #fb923c;
-            --accent-glow: rgba(249, 115, 22, 0.4);
-            --border: #292524;
-            --border-light: #3f3f46;
-            --success: #22c55e;
+            --white: #ffffff;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --gray-900: #0f172a;
+            --blue-50: #eff6ff;
+            --blue-100: #dbeafe;
+            --blue-200: #bfdbfe;
+            --blue-500: #3b82f6;
+            --blue-600: #2563eb;
+            --blue-700: #1d4ed8;
+            --blue-800: #1e40af;
+            --green-500: #22c55e;
+            --green-600: #16a34a;
         }
 
         html {
@@ -53,137 +61,28 @@
         }
 
         body {
-            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--bg-deep);
-            color: var(--text-primary);
+            font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--white);
+            color: var(--gray-800);
             line-height: 1.6;
-            overflow-x: hidden;
-        }
-
-        /* Ambient background */
-        .ambient-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: -1;
-            overflow: hidden;
-        }
-
-        .ambient-orb {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(100px);
-            opacity: 0.3;
-        }
-
-        .ambient-orb-1 {
-            width: 600px;
-            height: 600px;
-            background: var(--accent);
-            top: -200px;
-            right: -100px;
-            opacity: 0.15;
-        }
-
-        .ambient-orb-2 {
-            width: 400px;
-            height: 400px;
-            background: #7c3aed;
-            bottom: 20%;
-            left: -100px;
-            opacity: 0.1;
-        }
-
-        .grid-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: -1;
-            opacity: 0.03;
-            background-image: 
-                linear-gradient(var(--text-primary) 1px, transparent 1px),
-                linear-gradient(90deg, var(--text-primary) 1px, transparent 1px);
-            background-size: 80px 80px;
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1140px;
             margin: 0 auto;
             padding: 0 24px;
         }
 
-        /* Animations */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-
-        @keyframes pulse-glow {
-            0%, 100% { box-shadow: 0 0 20px var(--accent-glow); }
-            50% { box-shadow: 0 0 40px var(--accent-glow), 0 0 60px var(--accent-glow); }
-        }
-
-        @keyframes slideInRight {
-            from {
-                opacity: 0;
-                transform: translateX(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        .animate-on-scroll {
-            opacity: 0;
-            transform: translateY(30px);
-            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
-        }
-
-        .animate-on-scroll.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .stagger-1 { transition-delay: 0.1s; }
-        .stagger-2 { transition-delay: 0.2s; }
-        .stagger-3 { transition-delay: 0.3s; }
-        .stagger-4 { transition-delay: 0.4s; }
-        .stagger-5 { transition-delay: 0.5s; }
-        .stagger-6 { transition-delay: 0.6s; }
-
         /* Header */
         header {
-            padding: 20px 0;
+            padding: 16px 0;
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             z-index: 1000;
-            transition: all 0.3s;
-        }
-
-        header.scrolled {
-            background: rgba(12, 10, 9, 0.9);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--border);
+            background: var(--white);
+            border-bottom: 1px solid var(--gray-200);
         }
 
         .header-inner {
@@ -195,65 +94,47 @@
         .logo {
             display: flex;
             align-items: center;
-            gap: 12px;
-            font-weight: 700;
-            font-size: 1.25rem;
-            color: var(--text-primary);
+            gap: 10px;
+            font-weight: 600;
+            font-size: 1.125rem;
+            color: var(--gray-900);
             text-decoration: none;
         }
 
         .logo-icon {
-            width: 44px;
-            height: 44px;
-            background: linear-gradient(135deg, var(--accent), #ea580c);
-            border-radius: 12px;
+            width: 36px;
+            height: 36px;
+            background: var(--blue-600);
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 20px var(--accent-glow);
         }
 
         .logo-icon svg {
-            width: 24px;
-            height: 24px;
+            width: 20px;
+            height: 20px;
             fill: white;
         }
 
         .nav-links {
             display: flex;
-            gap: 40px;
+            gap: 32px;
             list-style: none;
         }
 
         .nav-links a {
-            color: var(--text-secondary);
+            color: var(--gray-600);
             text-decoration: none;
             font-weight: 500;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             transition: color 0.2s;
-            position: relative;
-        }
-
-        .nav-links a::after {
-            content: '';
-            position: absolute;
-            bottom: -4px;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background: var(--accent);
-            transition: width 0.3s;
         }
 
         .nav-links a:hover {
-            color: var(--text-primary);
+            color: var(--blue-600);
         }
 
-        .nav-links a:hover::after {
-            width: 100%;
-        }
-
-        /* Mobile Menu */
         .mobile-menu-btn {
             display: none;
             flex-direction: column;
@@ -262,27 +143,14 @@
             background: none;
             border: none;
             cursor: pointer;
-            z-index: 1001;
         }
 
         .mobile-menu-btn span {
             display: block;
-            width: 24px;
+            width: 22px;
             height: 2px;
-            background: var(--text-primary);
+            background: var(--gray-700);
             transition: all 0.3s;
-        }
-
-        .mobile-menu-btn.active span:nth-child(1) {
-            transform: rotate(45deg) translate(5px, 5px);
-        }
-
-        .mobile-menu-btn.active span:nth-child(2) {
-            opacity: 0;
-        }
-
-        .mobile-menu-btn.active span:nth-child(3) {
-            transform: rotate(-45deg) translate(5px, -5px);
         }
 
         .mobile-nav {
@@ -292,10 +160,9 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(12, 10, 9, 0.98);
-            backdrop-filter: blur(20px);
+            background: var(--white);
             z-index: 999;
-            padding: 100px 24px;
+            padding: 80px 24px;
             opacity: 0;
             visibility: hidden;
             transition: all 0.3s;
@@ -310,147 +177,129 @@
             list-style: none;
             display: flex;
             flex-direction: column;
-            gap: 32px;
-            text-align: center;
+            gap: 24px;
         }
 
         .mobile-nav a {
-            color: var(--text-primary);
+            color: var(--gray-800);
             text-decoration: none;
-            font-size: 1.5rem;
-            font-weight: 600;
+            font-size: 1.25rem;
+            font-weight: 500;
         }
 
         /* Hero */
         .hero {
-            padding: 160px 0 100px;
-            text-align: center;
-            position: relative;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
+            padding: 140px 0 80px;
+            background: linear-gradient(180deg, var(--blue-50) 0%, var(--white) 100%);
         }
 
         .hero-content {
-            width: 100%;
+            max-width: 720px;
+            margin: 0 auto;
+            text-align: center;
         }
 
         .badge {
             display: inline-flex;
             align-items: center;
-            gap: 10px;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            padding: 10px 20px;
+            gap: 8px;
+            background: var(--white);
+            border: 1px solid var(--gray-200);
+            padding: 8px 16px;
             border-radius: 100px;
             font-size: 0.875rem;
             font-weight: 500;
-            color: var(--text-secondary);
-            margin-bottom: 32px;
-            animation: fadeInUp 0.6s ease-out;
+            color: var(--gray-600);
+            margin-bottom: 24px;
         }
 
         .badge-dot {
             width: 8px;
             height: 8px;
-            background: var(--success);
+            background: var(--green-500);
             border-radius: 50%;
-            animation: pulse-glow 2s infinite;
-            box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
         }
 
         h1 {
-            font-size: clamp(3rem, 8vw, 5rem);
-            font-weight: 800;
-            line-height: 1.05;
-            margin-bottom: 28px;
-            letter-spacing: -0.04em;
-            animation: fadeInUp 0.6s ease-out 0.1s both;
+            font-size: clamp(2.5rem, 5vw, 3.5rem);
+            font-weight: 700;
+            line-height: 1.15;
+            margin-bottom: 20px;
+            color: var(--gray-900);
+            letter-spacing: -0.02em;
         }
 
         h1 .highlight {
-            background: linear-gradient(135deg, var(--accent), #fbbf24);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: var(--blue-600);
         }
 
         .hero-subtitle {
-            font-size: 1.25rem;
-            color: var(--text-secondary);
-            max-width: 600px;
-            margin: 0 auto 48px;
+            font-size: 1.125rem;
+            color: var(--gray-600);
+            max-width: 540px;
+            margin: 0 auto 32px;
             line-height: 1.7;
-            animation: fadeInUp 0.6s ease-out 0.2s both;
         }
 
         .cta-group {
             display: flex;
-            gap: 16px;
+            gap: 12px;
             justify-content: center;
             flex-wrap: wrap;
-            animation: fadeInUp 0.6s ease-out 0.3s both;
         }
 
         .btn {
             display: inline-flex;
             align-items: center;
-            gap: 10px;
-            padding: 18px 36px;
-            border-radius: 14px;
+            gap: 8px;
+            padding: 14px 28px;
+            border-radius: 8px;
             font-weight: 600;
-            font-size: 1rem;
+            font-size: 0.95rem;
             text-decoration: none;
-            transition: all 0.3s;
+            transition: all 0.2s;
             cursor: pointer;
             border: none;
             font-family: inherit;
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, var(--accent), #ea580c);
+            background: var(--blue-600);
             color: white;
-            box-shadow: 0 4px 20px var(--accent-glow);
         }
 
         .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 30px var(--accent-glow);
+            background: var(--blue-700);
         }
 
         .btn-secondary {
-            background: var(--bg-card);
-            color: var(--text-primary);
-            border: 1px solid var(--border);
+            background: var(--white);
+            color: var(--gray-700);
+            border: 1px solid var(--gray-300);
         }
 
         .btn-secondary:hover {
-            background: var(--bg-elevated);
-            border-color: var(--border-light);
-            transform: translateY(-3px);
+            background: var(--gray-50);
+            border-color: var(--gray-400);
         }
 
         .btn svg {
-            width: 20px;
-            height: 20px;
+            width: 18px;
+            height: 18px;
         }
 
-        /* Demo visual */
+        /* Demo Window */
         .hero-visual {
-            margin-top: 80px;
-            position: relative;
-            animation: fadeInUp 0.8s ease-out 0.4s both;
+            margin-top: 60px;
         }
 
         .demo-window {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 20px;
+            background: var(--white);
+            border: 1px solid var(--gray-200);
+            border-radius: 12px;
             overflow: hidden;
-            box-shadow: 
-                0 0 0 1px rgba(255, 255, 255, 0.05),
-                0 20px 80px rgba(0, 0, 0, 0.5);
-            max-width: 950px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+            max-width: 900px;
             margin: 0 auto;
         }
 
@@ -458,21 +307,21 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 18px 24px;
-            background: var(--bg-elevated);
-            border-bottom: 1px solid var(--border);
+            padding: 14px 20px;
+            background: var(--gray-50);
+            border-bottom: 1px solid var(--gray-200);
         }
 
         .demo-dots {
             display: flex;
-            gap: 8px;
+            gap: 6px;
         }
 
         .demo-dot {
-            width: 12px;
-            height: 12px;
+            width: 10px;
+            height: 10px;
             border-radius: 50%;
-            background: var(--border-light);
+            background: var(--gray-300);
         }
 
         .demo-dot:first-child { background: #ef4444; }
@@ -482,35 +331,34 @@
         .demo-title {
             flex: 1;
             text-align: center;
-            font-size: 0.875rem;
-            color: var(--text-muted);
-            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--gray-500);
+            font-family: 'IBM Plex Mono', monospace;
         }
 
         .demo-content {
-            padding: 48px;
+            padding: 40px;
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 40px;
+            gap: 32px;
             align-items: center;
         }
 
         .demo-pdf {
-            background: var(--bg-elevated);
-            border-radius: 12px;
-            padding: 28px;
+            background: var(--gray-50);
+            border-radius: 8px;
+            padding: 24px;
             aspect-ratio: 8.5/11;
             display: flex;
             flex-direction: column;
-            gap: 14px;
-            border: 1px solid var(--border);
-            animation: float 4s ease-in-out infinite;
+            gap: 12px;
+            border: 1px solid var(--gray-200);
         }
 
         .demo-line {
-            height: 10px;
-            background: var(--border-light);
-            border-radius: 5px;
+            height: 8px;
+            background: var(--gray-200);
+            border-radius: 4px;
         }
 
         .demo-line:nth-child(1) { width: 60%; }
@@ -518,69 +366,106 @@
         .demo-line:nth-child(3) { width: 90%; }
         .demo-line:nth-child(4) { width: 100%; }
         .demo-line:nth-child(5) { width: 75%; }
+        .demo-line:nth-child(6) { width: 85%; }
 
-        .demo-screenshots {
+        .demo-capture-area {
             display: flex;
             flex-direction: column;
             gap: 16px;
         }
 
-        .demo-screenshot {
-            background: linear-gradient(135deg, var(--accent), #ea580c);
-            color: white;
-            padding: 18px 24px;
-            border-radius: 12px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.8rem;
+        .capture-preview {
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+            border-radius: 8px;
+            padding: 16px;
             display: flex;
             align-items: center;
-            gap: 14px;
-            opacity: 0;
-            animation: slideInRight 0.5s ease-out forwards;
+            gap: 12px;
         }
 
-        .demo-screenshot:nth-child(1) { animation-delay: 0.6s; }
-        .demo-screenshot:nth-child(2) { animation-delay: 0.8s; }
-        .demo-screenshot:nth-child(3) { animation-delay: 1s; }
-
-        .demo-screenshot svg {
-            width: 22px;
-            height: 22px;
-            flex-shrink: 0;
+        .capture-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--blue-100);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        /* Features */
-        .features {
-            padding: 120px 0;
+        .capture-icon svg {
+            width: 20px;
+            height: 20px;
+            stroke: var(--blue-600);
+        }
+
+        .capture-info h4 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--gray-800);
+            margin-bottom: 2px;
+        }
+
+        .capture-info p {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+        }
+
+        .capture-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 16px;
+            background: var(--green-500);
+            color: white;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .capture-indicator svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* Sections */
+        section {
+            padding: 80px 0;
         }
 
         .section-header {
             text-align: center;
-            margin-bottom: 72px;
+            max-width: 600px;
+            margin: 0 auto 48px;
         }
 
         .section-label {
             display: inline-block;
-            font-size: 0.875rem;
+            font-size: 0.8rem;
             font-weight: 600;
-            color: var(--accent);
+            color: var(--blue-600);
             text-transform: uppercase;
-            letter-spacing: 0.1em;
-            margin-bottom: 16px;
+            letter-spacing: 0.05em;
+            margin-bottom: 12px;
         }
 
         .section-header h2 {
-            font-size: clamp(2rem, 5vw, 3rem);
+            font-size: clamp(1.75rem, 3vw, 2.25rem);
             font-weight: 700;
-            margin-bottom: 20px;
-            letter-spacing: -0.03em;
+            color: var(--gray-900);
+            margin-bottom: 16px;
+            letter-spacing: -0.02em;
         }
 
         .section-header p {
-            color: var(--text-secondary);
-            font-size: 1.2rem;
-            max-width: 600px;
-            margin: 0 auto;
+            color: var(--gray-600);
+            font-size: 1.05rem;
+        }
+
+        /* Features Grid */
+        .features {
+            background: var(--gray-50);
         }
 
         .features-grid {
@@ -590,763 +475,408 @@
         }
 
         .feature-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 36px;
-            transition: all 0.4s;
+            background: var(--white);
+            border: 1px solid var(--gray-200);
+            border-radius: 12px;
+            padding: 28px;
+            transition: box-shadow 0.2s;
         }
 
         .feature-card:hover {
-            transform: translateY(-8px);
-            border-color: var(--border-light);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
         }
 
         .feature-icon {
-            width: 56px;
-            height: 56px;
-            background: linear-gradient(135deg, var(--accent), #ea580c);
-            border-radius: 16px;
+            width: 44px;
+            height: 44px;
+            background: var(--blue-100);
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 24px;
-            box-shadow: 0 4px 20px var(--accent-glow);
+            margin-bottom: 16px;
         }
 
         .feature-icon svg {
-            width: 28px;
-            height: 28px;
-            stroke: white;
-            fill: none;
-            stroke-width: 2;
+            width: 22px;
+            height: 22px;
+            stroke: var(--blue-600);
         }
 
         .feature-card h3 {
-            font-size: 1.3rem;
+            font-size: 1rem;
             font-weight: 600;
-            margin-bottom: 14px;
+            color: var(--gray-900);
+            margin-bottom: 8px;
         }
 
         .feature-card p {
-            color: var(--text-secondary);
-            line-height: 1.7;
+            font-size: 0.9rem;
+            color: var(--gray-600);
+            line-height: 1.6;
         }
 
-        /* How it works */
-        .how-it-works {
-            padding: 120px 0;
-            background: linear-gradient(180deg, var(--bg-deep) 0%, var(--bg-card) 50%, var(--bg-deep) 100%);
-            position: relative;
-        }
-
-        .steps {
+        /* Use Cases */
+        .use-cases-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 48px;
-            position: relative;
+            gap: 24px;
         }
 
-        .steps::before {
-            content: '';
-            position: absolute;
-            top: 60px;
-            left: 15%;
-            right: 15%;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, var(--accent), transparent);
-            opacity: 0.3;
+        .use-case-card {
+            background: var(--white);
+            border: 1px solid var(--gray-200);
+            border-radius: 12px;
+            padding: 28px;
         }
 
-        .step {
-            text-align: center;
-            position: relative;
-        }
-
-        .step-number {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 4.5rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, var(--accent), #fbbf24);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            line-height: 1;
-            margin-bottom: 28px;
-        }
-
-        .step h3 {
-            font-size: 1.4rem;
-            font-weight: 600;
-            margin-bottom: 14px;
-        }
-
-        .step p {
-            color: var(--text-secondary);
-            line-height: 1.7;
-            max-width: 280px;
-            margin: 0 auto;
-        }
-
-        /* Installation */
-        .installation {
-            padding: 120px 0;
-        }
-
-        .install-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 24px;
-            padding: 56px;
-            max-width: 850px;
-            margin: 0 auto;
-        }
-
-        .install-steps {
-            display: flex;
-            flex-direction: column;
-            gap: 40px;
-        }
-
-        .install-step {
-            display: flex;
-            gap: 28px;
-            align-items: flex-start;
-        }
-
-        .install-step-num {
+        .use-case-icon {
             width: 48px;
             height: 48px;
-            background: linear-gradient(135deg, var(--accent), #ea580c);
-            color: white;
-            border-radius: 14px;
+            background: var(--blue-50);
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 700;
-            font-size: 1.2rem;
-            flex-shrink: 0;
-            box-shadow: 0 4px 15px var(--accent-glow);
+            margin-bottom: 16px;
+            font-size: 1.5rem;
         }
 
-        .install-step-content h4 {
-            font-size: 1.2rem;
+        .use-case-card h3 {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 8px;
+        }
+
+        .use-case-card p {
+            font-size: 0.9rem;
+            color: var(--gray-600);
+            line-height: 1.6;
+        }
+
+        /* How It Works */
+        .how-it-works {
+            background: var(--blue-600);
+            color: white;
+        }
+
+        .how-it-works .section-label {
+            color: var(--blue-200);
+        }
+
+        .how-it-works .section-header h2 {
+            color: white;
+        }
+
+        .how-it-works .section-header p {
+            color: var(--blue-100);
+        }
+
+        .steps-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 32px;
+        }
+
+        .step-card {
+            text-align: center;
+        }
+
+        .step-number {
+            width: 48px;
+            height: 48px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin: 0 auto 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .step-card h3 {
+            font-size: 1.1rem;
             font-weight: 600;
             margin-bottom: 10px;
         }
 
-        .install-step-content p {
-            color: var(--text-secondary);
-            line-height: 1.7;
+        .step-card p {
+            font-size: 0.95rem;
+            color: var(--blue-100);
+            line-height: 1.6;
         }
 
-        .install-step-content code {
-            display: inline-block;
-            background: var(--bg-elevated);
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-family: 'JetBrains Mono', monospace;
+        /* Installation */
+        .installation-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 48px;
+            align-items: center;
+        }
+
+        .install-steps {
+            list-style: none;
+        }
+
+        .install-steps li {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+            align-items: flex-start;
+        }
+
+        .step-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--blue-100);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: var(--blue-600);
             font-size: 0.875rem;
-            margin-top: 12px;
-            border: 1px solid var(--border);
-            color: var(--accent);
+            flex-shrink: 0;
         }
 
-        /* Settings */
-        .settings {
-            padding: 120px 0;
-            background: var(--bg-card);
+        .install-steps h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 4px;
+        }
+
+        .install-steps p {
+            font-size: 0.9rem;
+            color: var(--gray-600);
+        }
+
+        .install-visual {
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+            border-radius: 12px;
+            padding: 32px;
+            text-align: center;
+        }
+
+        .install-visual img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* Settings Preview */
+        .settings-section {
+            background: var(--gray-50);
         }
 
         .settings-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 64px;
+            gap: 48px;
             align-items: center;
         }
 
         .settings-content h2 {
-            font-size: clamp(2rem, 5vw, 2.8rem);
+            font-size: 1.75rem;
             font-weight: 700;
-            margin-bottom: 24px;
-            letter-spacing: -0.03em;
+            color: var(--gray-900);
+            margin-bottom: 16px;
         }
 
         .settings-content p {
-            color: var(--text-secondary);
-            font-size: 1.15rem;
-            margin-bottom: 36px;
-            line-height: 1.7;
+            color: var(--gray-600);
+            margin-bottom: 24px;
         }
 
         .settings-list {
             list-style: none;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
         }
 
         .settings-list li {
             display: flex;
             align-items: center;
-            gap: 16px;
-            font-weight: 500;
-            font-size: 1.05rem;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--gray-200);
+            font-size: 0.95rem;
+            color: var(--gray-700);
         }
 
         .settings-list svg {
-            width: 24px;
-            height: 24px;
-            color: var(--accent);
-            flex-shrink: 0;
+            width: 20px;
+            height: 20px;
+            stroke: var(--blue-600);
         }
 
-        .settings-preview {
-            background: var(--bg-deep);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4);
+        .settings-visual {
+            background: var(--white);
+            border: 1px solid var(--gray-200);
+            border-radius: 12px;
+            padding: 24px;
         }
 
-        .settings-preview-header {
-            background: var(--bg-elevated);
-            padding: 18px 28px;
-            border-bottom: 1px solid var(--border);
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .settings-preview-header::before {
-            content: '⚙️';
-        }
-
-        .settings-preview-body {
-            padding: 28px;
-        }
-
-        .setting-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 18px 0;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .setting-row:last-child {
-            border-bottom: none;
-        }
-
-        .setting-label {
-            font-weight: 500;
-        }
-
-        .setting-value {
-            color: var(--text-muted);
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.875rem;
-        }
-
-        .toggle {
-            width: 52px;
-            height: 28px;
-            background: var(--accent);
-            border-radius: 14px;
-            position: relative;
-            box-shadow: 0 2px 10px var(--accent-glow);
-        }
-
-        .toggle::after {
-            content: '';
-            position: absolute;
-            width: 22px;
-            height: 22px;
-            background: white;
-            border-radius: 50%;
-            top: 3px;
-            right: 3px;
-            transition: 0.2s;
-        }
-
-        /* FAQ Section */
-        .faq {
-            padding: 120px 0;
-        }
-
-        .faq-grid {
-            max-width: 800px;
+        /* FAQ */
+        .faq-container {
+            max-width: 700px;
             margin: 0 auto;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
         }
 
         .faq-item {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 16px;
+            border: 1px solid var(--gray-200);
+            border-radius: 10px;
+            margin-bottom: 12px;
             overflow: hidden;
-            transition: all 0.3s;
-        }
-
-        .faq-item:hover {
-            border-color: var(--border-light);
+            background: var(--white);
         }
 
         .faq-question {
-            padding: 24px 28px;
+            width: 100%;
+            padding: 20px 24px;
+            background: none;
+            border: none;
+            text-align: left;
+            font-size: 1rem;
             font-weight: 600;
-            font-size: 1.1rem;
+            color: var(--gray-900);
             cursor: pointer;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            transition: color 0.2s;
-        }
-
-        .faq-question:hover {
-            color: var(--accent);
+            font-family: inherit;
         }
 
         .faq-question svg {
-            width: 24px;
-            height: 24px;
+            width: 20px;
+            height: 20px;
+            stroke: var(--gray-400);
             transition: transform 0.3s;
-            color: var(--text-muted);
         }
 
         .faq-item.active .faq-question svg {
             transform: rotate(180deg);
-            color: var(--accent);
         }
 
         .faq-answer {
             max-height: 0;
             overflow: hidden;
-            transition: max-height 0.3s ease-out;
+            transition: max-height 0.3s;
+        }
+
+        .faq-answer-inner {
+            padding: 0 24px 20px;
+            color: var(--gray-600);
+            font-size: 0.95rem;
+            line-height: 1.7;
         }
 
         .faq-item.active .faq-answer {
-            max-height: 200px;
+            max-height: 300px;
         }
 
-        .faq-answer p {
-            padding: 0 28px 24px;
-            color: var(--text-secondary);
-            line-height: 1.7;
-        }
-
-        /* Footer */
-        footer {
-            padding: 60px 0;
-            border-top: 1px solid var(--border);
-        }
-
-        .footer-inner {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .footer-text {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-        }
-
-        .footer-links {
-            display: flex;
-            gap: 32px;
-        }
-
-        .footer-links a {
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-size: 0.9rem;
-            transition: color 0.2s;
-        }
-
-        .footer-links a:hover {
-            color: var(--accent);
-        }
-
-        /* Back to Top */
-        .back-to-top {
-            position: fixed;
-            bottom: 32px;
-            right: 32px;
-            width: 50px;
-            height: 50px;
-            background: var(--accent);
-            border: none;
-            border-radius: 14px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(20px);
-            transition: all 0.3s;
-            box-shadow: 0 4px 20px var(--accent-glow);
-            z-index: 100;
-        }
-
-        .back-to-top.visible {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0);
-        }
-
-        .back-to-top:hover {
-            transform: translateY(-4px);
-        }
-
-        .back-to-top svg {
-            width: 24px;
-            height: 24px;
-            stroke: white;
-            fill: none;
-            stroke-width: 2.5;
-        }
-
-        /* Trust Notice */
-        .trust-notice {
-            padding: 80px 0;
-        }
-
-        .trust-card {
-            background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(34, 197, 94, 0.05) 100%);
-            border: 1px solid rgba(34, 197, 94, 0.3);
-            border-radius: 20px;
-            padding: 40px;
-            display: flex;
-            gap: 32px;
-            align-items: flex-start;
-        }
-
-        .trust-icon {
-            font-size: 3rem;
-            flex-shrink: 0;
-        }
-
-        .trust-content h3 {
-            font-size: 1.4rem;
-            font-weight: 600;
-            margin-bottom: 12px;
-            color: var(--success);
-        }
-
-        .trust-content > p {
-            color: var(--text-secondary);
-            margin-bottom: 24px;
-            line-height: 1.7;
-        }
-
-        .trust-steps {
-            display: flex;
-            gap: 24px;
-            margin-bottom: 28px;
-            flex-wrap: wrap;
-        }
-
-        .trust-step {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: var(--bg-card);
-            padding: 12px 20px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-        }
-
-        .trust-step-num {
-            width: 28px;
-            height: 28px;
-            background: var(--success);
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            font-size: 0.875rem;
-        }
-
-        .trust-badges {
-            display: flex;
-            gap: 16px;
-            flex-wrap: wrap;
-        }
-
-        .trust-badge {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: var(--bg-card);
-            padding: 10px 16px;
-            border-radius: 100px;
-            border: 1px solid var(--border);
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-        }
-
-        .trust-badge svg {
-            width: 18px;
-            height: 18px;
-            color: var(--success);
-        }
-
-        /* Use Cases */
-        .use-cases {
-            padding: 120px 0;
-        }
-
-        .use-cases-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 24px;
-        }
-
-        .use-case-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 32px;
-            text-align: center;
-            transition: all 0.4s;
-        }
-
-        .use-case-card:hover {
-            transform: translateY(-8px);
-            border-color: var(--accent);
-            box-shadow: 0 20px 60px rgba(249, 115, 22, 0.15);
-        }
-
-        .use-case-icon {
-            font-size: 3rem;
-            margin-bottom: 20px;
-            display: block;
-        }
-
-        .use-case-card h3 {
-            font-size: 1.15rem;
-            font-weight: 600;
-            margin-bottom: 12px;
-        }
-
-        .use-case-card p {
-            color: var(--text-secondary);
-            font-size: 0.95rem;
-            line-height: 1.6;
-        }
-
-        /* Technical Details */
-        .tech-details {
-            padding: 120px 0;
-            background: var(--bg-card);
-        }
-
+        /* Technical */
         .tech-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 48px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
         }
 
         .tech-card {
-            background: var(--bg-deep);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 36px;
-        }
-
-        .tech-card h3 {
-            font-size: 1.3rem;
-            font-weight: 600;
-            margin-bottom: 24px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .tech-card h3 svg {
-            width: 28px;
-            height: 28px;
-            color: var(--accent);
-        }
-
-        .tech-list {
-            list-style: none;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        .tech-list li {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-bottom: 16px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .tech-list li:last-child {
-            border-bottom: none;
-            padding-bottom: 0;
-        }
-
-        .tech-label {
-            color: var(--text-secondary);
-        }
-
-        .tech-value {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.9rem;
-            color: var(--text-primary);
-            background: var(--bg-elevated);
-            padding: 6px 12px;
-            border-radius: 8px;
-        }
-
-        .keyboard-shortcuts {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 16px;
-        }
-
-        .shortcut-item {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            padding: 16px;
-            background: var(--bg-elevated);
-            border-radius: 12px;
-            border: 1px solid var(--border);
-        }
-
-        .shortcut-keys {
-            display: flex;
-            gap: 6px;
-        }
-
-        .key {
-            background: var(--bg-deep);
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.8rem;
-            border: 1px solid var(--border-light);
-            min-width: 36px;
+            background: var(--white);
+            border: 1px solid var(--gray-200);
+            border-radius: 10px;
+            padding: 24px;
             text-align: center;
         }
 
-        .shortcut-desc {
-            color: var(--text-secondary);
+        .tech-card h4 {
             font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--gray-800);
+            margin-bottom: 6px;
+        }
+
+        .tech-card p {
+            font-size: 0.8rem;
+            color: var(--gray-500);
         }
 
         /* Changelog */
         .changelog {
-            padding: 120px 0;
+            background: var(--gray-50);
         }
 
         .changelog-container {
-            max-width: 800px;
+            max-width: 700px;
             margin: 0 auto;
         }
 
         .changelog-item {
-            position: relative;
-            padding-left: 40px;
-            padding-bottom: 48px;
-        }
-
-        .changelog-item:last-child {
-            padding-bottom: 0;
-        }
-
-        .changelog-item::before {
-            content: '';
-            position: absolute;
-            left: 8px;
-            top: 8px;
-            bottom: 0;
-            width: 2px;
-            background: linear-gradient(180deg, var(--accent), transparent);
-        }
-
-        .changelog-item:last-child::before {
-            display: none;
-        }
-
-        .changelog-dot {
-            position: absolute;
-            left: 0;
-            top: 4px;
-            width: 18px;
-            height: 18px;
-            background: var(--accent);
-            border-radius: 50%;
-            box-shadow: 0 0 20px var(--accent-glow);
+            background: var(--white);
+            border: 1px solid var(--gray-200);
+            border-radius: 12px;
+            padding: 28px;
+            margin-bottom: 20px;
         }
 
         .changelog-version {
-            display: inline-flex;
+            display: flex;
             align-items: center;
             gap: 12px;
             margin-bottom: 12px;
+            flex-wrap: wrap;
         }
 
         .version-tag {
-            background: linear-gradient(135deg, var(--accent), #ea580c);
+            background: var(--blue-600);
             color: white;
-            padding: 6px 14px;
+            padding: 4px 12px;
             border-radius: 100px;
-            font-size: 0.875rem;
+            font-size: 0.8rem;
             font-weight: 600;
         }
 
         .version-date {
-            color: var(--text-muted);
-            font-size: 0.875rem;
+            color: var(--gray-500);
+            font-size: 0.85rem;
         }
 
         .version-badge {
-            background: var(--success);
+            background: var(--green-500);
             color: white;
             padding: 4px 10px;
             border-radius: 100px;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: 600;
+            text-transform: uppercase;
         }
 
         .changelog-title {
-            font-size: 1.3rem;
+            font-size: 1.1rem;
             font-weight: 600;
+            color: var(--gray-900);
             margin-bottom: 16px;
         }
 
         .changelog-features {
             list-style: none;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
         }
 
         .changelog-features li {
             display: flex;
             align-items: flex-start;
-            gap: 12px;
-            color: var(--text-secondary);
-            line-height: 1.5;
+            gap: 10px;
+            padding: 8px 0;
+            font-size: 0.9rem;
+            color: var(--gray-700);
         }
 
-        .changelog-features li svg {
-            width: 20px;
-            height: 20px;
-            color: var(--accent);
+        .changelog-features svg {
+            width: 18px;
+            height: 18px;
+            stroke: var(--green-500);
             flex-shrink: 0;
             margin-top: 2px;
         }
@@ -1354,43 +884,206 @@
         .feature-tag {
             display: inline-block;
             padding: 2px 8px;
-            border-radius: 6px;
-            font-size: 0.75rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
             font-weight: 600;
-            margin-right: 8px;
+            text-transform: uppercase;
+            margin-right: 6px;
         }
 
         .feature-tag.new {
-            background: rgba(34, 197, 94, 0.2);
-            color: var(--success);
+            background: var(--blue-100);
+            color: var(--blue-700);
         }
 
         .feature-tag.improved {
-            background: rgba(59, 130, 246, 0.2);
-            color: #3b82f6;
+            background: #fef3c7;
+            color: #92400e;
         }
 
         .feature-tag.fixed {
-            background: rgba(249, 115, 22, 0.2);
-            color: var(--accent);
+            background: #dcfce7;
+            color: var(--green-600);
+        }
+
+        /* Trust Section */
+        .trust-section {
+            background: var(--blue-50);
+            border: 1px solid var(--blue-100);
+            border-radius: 16px;
+            padding: 40px;
+            margin: 60px auto;
+            max-width: 900px;
+        }
+
+        .trust-section h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .trust-section > p {
+            color: var(--gray-600);
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .trust-steps {
+            display: flex;
+            gap: 24px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+        }
+
+        .trust-step {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: var(--gray-700);
+        }
+
+        .trust-step span:first-child {
+            width: 24px;
+            height: 24px;
+            background: var(--blue-600);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .trust-badges {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .trust-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--white);
+            border: 1px solid var(--gray-200);
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: var(--gray-700);
+        }
+
+        .trust-badge svg {
+            width: 18px;
+            height: 18px;
+            stroke: var(--green-500);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--gray-900);
+            color: var(--gray-400);
+            padding: 48px 0 32px;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 24px;
+        }
+
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+            font-weight: 600;
+        }
+
+        .footer-logo .logo-icon {
+            width: 32px;
+            height: 32px;
+        }
+
+        .footer-logo .logo-icon svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 24px;
+            list-style: none;
+        }
+
+        .footer-links a {
+            color: var(--gray-400);
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        .footer-bottom {
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid var(--gray-800);
+            text-align: center;
+            font-size: 0.85rem;
+        }
+
+        /* Back to Top */
+        .back-to-top {
+            position: fixed;
+            bottom: 32px;
+            right: 32px;
+            width: 44px;
+            height: 44px;
+            background: var(--blue-600);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .back-to-top:hover {
+            background: var(--blue-700);
+        }
+
+        .back-to-top svg {
+            width: 20px;
+            height: 20px;
         }
 
         /* Responsive */
         @media (max-width: 1024px) {
-            .features-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
+            .features-grid,
             .use-cases-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
 
             .tech-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .keyboard-shortcuts {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(2, 1fr);
             }
         }
 
@@ -1408,8 +1101,11 @@
             }
 
             .hero {
-                padding: 140px 0 80px;
-                min-height: auto;
+                padding: 120px 0 60px;
+            }
+
+            h1 {
+                font-size: 2rem;
             }
 
             .demo-content {
@@ -1417,78 +1113,49 @@
                 padding: 24px;
             }
 
-            .demo-pdf {
-                max-width: 280px;
-                margin: 0 auto;
-            }
-
-            .features-grid {
+            .features-grid,
+            .use-cases-grid,
+            .steps-container {
                 grid-template-columns: 1fr;
             }
 
-            .steps {
-                grid-template-columns: 1fr;
-                gap: 48px;
-            }
-
-            .steps::before {
-                display: none;
-            }
-
+            .installation-content,
             .settings-grid {
                 grid-template-columns: 1fr;
             }
 
-            .install-card {
-                padding: 32px 24px;
-            }
-
-            .footer-inner {
-                flex-direction: column;
-                gap: 20px;
-                text-align: center;
-            }
-
-            .back-to-top {
-                bottom: 20px;
-                right: 20px;
-            }
-
-            .use-cases-grid {
+            .tech-grid {
                 grid-template-columns: 1fr;
             }
 
-            .changelog-item {
-                padding-left: 32px;
+            section {
+                padding: 60px 0;
             }
 
-            .shortcut-item {
+            .trust-section {
+                padding: 28px 20px;
+            }
+
+            .footer-content {
                 flex-direction: column;
                 text-align: center;
             }
+        }
 
-            .trust-card {
-                flex-direction: column;
-                text-align: center;
-            }
+        /* Animations */
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
 
-            .trust-steps {
-                justify-content: center;
-            }
-
-            .trust-badges {
-                justify-content: center;
-            }
+        .animate-on-scroll.visible {
+            opacity: 1;
+            transform: translateY(0);
         }
     </style>
 </head>
 <body>
-    <div class="ambient-bg">
-        <div class="ambient-orb ambient-orb-1"></div>
-        <div class="ambient-orb ambient-orb-2"></div>
-    </div>
-    <div class="grid-overlay"></div>
-
     <header id="header">
         <div class="container">
             <div class="header-inner">
@@ -1502,7 +1169,8 @@
                     <ul class="nav-links">
                         <li><a href="#features">Features</a></li>
                         <li><a href="#use-cases">Use Cases</a></li>
-                        <li><a href="#technical">Technical</a></li>
+                        <li><a href="#how-it-works">How It Works</a></li>
+                        <li><a href="#faq">FAQ</a></li>
                         <li><a href="#changelog">Changelog</a></li>
                     </ul>
                 </nav>
@@ -1519,12 +1187,14 @@
         <ul>
             <li><a href="#features" class="mobile-nav-link">Features</a></li>
             <li><a href="#use-cases" class="mobile-nav-link">Use Cases</a></li>
-            <li><a href="#technical" class="mobile-nav-link">Technical</a></li>
+            <li><a href="#how-it-works" class="mobile-nav-link">How It Works</a></li>
+            <li><a href="#faq" class="mobile-nav-link">FAQ</a></li>
             <li><a href="#changelog" class="mobile-nav-link">Changelog</a></li>
         </ul>
     </nav>
 
     <main>
+        <!-- Hero Section -->
         <section class="hero">
             <div class="container">
                 <div class="hero-content">
@@ -1532,51 +1202,60 @@
                         <span class="badge-dot"></span>
                         Windows App • v2.1
                     </div>
-                    <h1>Automatic Screenshots<br>for <span class="highlight">PDF Navigation</span></h1>
-                    <p class="hero-subtitle">
-                        Capture every page of your Adobe Acrobat documents automatically as you navigate. Perfect for compliance, documentation, and audit trails.
-                    </p>
+                    <h1>Automatic PDF <span class="highlight">Screenshots</span> for Adobe Acrobat</h1>
+                    <p class="hero-subtitle">Capture every page as you navigate through PDF documents. Perfect for compliance workflows, documentation, and audit trails.</p>
                     <div class="cta-group">
                         <a href="PDFScreenshotTool_Setup.exe" class="btn btn-primary" download>
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                             Download Installer
                         </a>
-                        <a href="PDFScreenshotTool.exe" class="btn btn-secondary" download>
-                            Portable Version
+                        <a href="#features" class="btn btn-secondary">
+                            Learn More
                         </a>
                     </div>
-
-                    <div class="hero-visual">
-                        <div class="demo-window">
-                            <div class="demo-titlebar">
-                                <div class="demo-dots">
-                                    <div class="demo-dot"></div>
-                                    <div class="demo-dot"></div>
-                                    <div class="demo-dot"></div>
-                                </div>
-                                <div class="demo-title">Contract_2024.pdf - Adobe Acrobat Reader</div>
+                </div>
+                
+                <div class="hero-visual">
+                    <div class="demo-window">
+                        <div class="demo-titlebar">
+                            <div class="demo-dots">
+                                <div class="demo-dot"></div>
+                                <div class="demo-dot"></div>
+                                <div class="demo-dot"></div>
                             </div>
-                            <div class="demo-content">
-                                <div class="demo-pdf">
-                                    <div class="demo-line"></div>
-                                    <div class="demo-line"></div>
-                                    <div class="demo-line"></div>
-                                    <div class="demo-line"></div>
-                                    <div class="demo-line"></div>
+                            <div class="demo-title">Document.pdf - Adobe Acrobat</div>
+                        </div>
+                        <div class="demo-content">
+                            <div class="demo-pdf">
+                                <div class="demo-line"></div>
+                                <div class="demo-line"></div>
+                                <div class="demo-line"></div>
+                                <div class="demo-line"></div>
+                                <div class="demo-line"></div>
+                                <div class="demo-line"></div>
+                            </div>
+                            <div class="demo-capture-area">
+                                <div class="capture-preview">
+                                    <div class="capture-icon">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                                    </div>
+                                    <div class="capture-info">
+                                        <h4>Page_001.png</h4>
+                                        <p>Captured just now</p>
+                                    </div>
                                 </div>
-                                <div class="demo-screenshots">
-                                    <div class="demo-screenshot">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                        Contract_2024_page1_captured.png
+                                <div class="capture-preview">
+                                    <div class="capture-icon">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
                                     </div>
-                                    <div class="demo-screenshot">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                        Contract_2024_page2_captured.png
+                                    <div class="capture-info">
+                                        <h4>Page_002.png</h4>
+                                        <p>Captured just now</p>
                                     </div>
-                                    <div class="demo-screenshot">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                        Contract_2024_page3_captured.png
-                                    </div>
+                                </div>
+                                <div class="capture-indicator">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                                    Auto-capturing enabled
                                 </div>
                             </div>
                         </div>
@@ -1585,478 +1264,232 @@
             </div>
         </section>
 
+        <!-- Features Section -->
         <section class="features" id="features">
             <div class="container">
                 <div class="section-header animate-on-scroll">
                     <span class="section-label">Features</span>
                     <h2>Everything You Need</h2>
-                    <p>Simple, automatic, and reliable screenshot capture for Adobe Acrobat.</p>
+                    <p>A focused tool that does one thing exceptionally well.</p>
                 </div>
                 <div class="features-grid">
-                    <div class="feature-card animate-on-scroll stagger-1">
+                    <div class="feature-card animate-on-scroll">
                         <div class="feature-icon">
-                            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                         </div>
                         <h3>Automatic Capture</h3>
-                        <p>Screenshots are taken automatically when you navigate between pages—no manual action required. Just browse your document normally.</p>
+                        <p>Screenshots are taken automatically when you scroll or navigate to a new page in your PDF.</p>
                     </div>
-                    <div class="feature-card animate-on-scroll stagger-2">
+                    <div class="feature-card animate-on-scroll">
                         <div class="feature-icon">
-                            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
                         </div>
-                        <h3>Window-Only Capture</h3>
-                        <p>Only the Adobe Acrobat window is captured—not your entire screen. Your other work stays private.</p>
+                        <h3>Organized by Document</h3>
+                        <p>Each PDF gets its own folder, keeping your captures organized and easy to find.</p>
                     </div>
-                    <div class="feature-card animate-on-scroll stagger-3">
+                    <div class="feature-card animate-on-scroll">
                         <div class="feature-icon">
-                            <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></svg>
                         </div>
-                        <h3>Organized Saving</h3>
-                        <p>Screenshots are automatically named with the document name and timestamp for easy organization and retrieval.</p>
+                        <h3>Smart Detection</h3>
+                        <p>Duplicate pages are automatically skipped to save storage space.</p>
                     </div>
-                    <div class="feature-card animate-on-scroll stagger-4">
+                    <div class="feature-card animate-on-scroll">
                         <div class="feature-icon">
-                            <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                         </div>
-                        <h3>System Tray Integration</h3>
-                        <p>Runs quietly in the background. Access settings or pause capture anytime from the system tray icon.</p>
+                        <h3>Runs in Background</h3>
+                        <p>Sits quietly in your system tray, capturing pages while you work.</p>
                     </div>
-                    <div class="feature-card animate-on-scroll stagger-5">
+                    <div class="feature-card animate-on-scroll">
                         <div class="feature-icon">
-                            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
                         </div>
-                        <h3>Customizable Settings</h3>
-                        <p>Choose your save location, adjust capture timing, and toggle capture on/off whenever you need.</p>
+                        <h3>Customizable</h3>
+                        <p>Choose PNG or JPEG format, set quality, and configure capture behavior.</p>
                     </div>
-                    <div class="feature-card animate-on-scroll stagger-6">
+                    <div class="feature-card animate-on-scroll">
                         <div class="feature-icon">
-                            <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
                         </div>
-                        <h3>Compliance Ready</h3>
-                        <p>Perfect for creating audit trails, documenting form completion, or maintaining records for compliance requirements.</p>
+                        <h3>Manual Hotkey</h3>
+                        <p>Press Ctrl+Shift+S anytime to capture the current view manually.</p>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Use Cases -->
+        <!-- Use Cases Section -->
         <section class="use-cases" id="use-cases">
             <div class="container">
                 <div class="section-header animate-on-scroll">
                     <span class="section-label">Use Cases</span>
                     <h2>Perfect For Every Scenario</h2>
-                    <p>From compliance to research, see how professionals use PDF Screenshot Tool.</p>
+                    <p>Professionals across industries rely on PDF Screenshot Tool.</p>
                 </div>
                 <div class="use-cases-grid">
-                    <div class="use-case-card animate-on-scroll stagger-1">
-                        <span class="use-case-icon">📋</span>
-                        <h3>Compliance & Audit</h3>
-                        <p>Create timestamped evidence trails for regulatory compliance. Document every page viewed during reviews.</p>
+                    <div class="use-case-card animate-on-scroll">
+                        <div class="use-case-icon">📋</div>
+                        <h3>Compliance & Auditing</h3>
+                        <p>Create visual audit trails for regulatory requirements. Document exactly what was reviewed.</p>
                     </div>
-                    <div class="use-case-card animate-on-scroll stagger-2">
-                        <span class="use-case-icon">📚</span>
-                        <h3>Research & Study</h3>
-                        <p>Capture key pages from academic papers and textbooks. Build visual reference libraries effortlessly.</p>
+                    <div class="use-case-card animate-on-scroll">
+                        <div class="use-case-icon">📚</div>
+                        <h3>Research & Education</h3>
+                        <p>Capture reference materials from academic papers and textbooks for easy citation.</p>
                     </div>
-                    <div class="use-case-card animate-on-scroll stagger-3">
-                        <span class="use-case-icon">⚖️</span>
-                        <h3>Legal Review</h3>
-                        <p>Document contract reviews page by page. Maintain records of what was viewed and when.</p>
+                    <div class="use-case-card animate-on-scroll">
+                        <div class="use-case-icon">⚖️</div>
+                        <h3>Legal Documentation</h3>
+                        <p>Document contract reviews and legal filings with timestamped screenshots.</p>
                     </div>
-                    <div class="use-case-card animate-on-scroll stagger-4">
-                        <span class="use-case-icon">🏢</span>
-                        <h3>Corporate Training</h3>
-                        <p>Capture training materials for quick reference. Create visual guides from PDF manuals.</p>
+                    <div class="use-case-card animate-on-scroll">
+                        <div class="use-case-icon">🏥</div>
+                        <h3>Healthcare Records</h3>
+                        <p>Maintain visual records of reviewed medical documents for compliance.</p>
                     </div>
-                    <div class="use-case-card animate-on-scroll stagger-5">
-                        <span class="use-case-icon">📝</span>
-                        <h3>Form Documentation</h3>
-                        <p>Record filled forms before submission. Keep visual backups of important documents.</p>
+                    <div class="use-case-card animate-on-scroll">
+                        <div class="use-case-icon">💼</div>
+                        <h3>Business Workflows</h3>
+                        <p>Document approvals, reviews, and sign-offs in your business processes.</p>
                     </div>
-                    <div class="use-case-card animate-on-scroll stagger-6">
-                        <span class="use-case-icon">🔬</span>
-                        <h3>Quality Assurance</h3>
-                        <p>Document PDF review processes. Capture evidence of document verification workflows.</p>
-                    </div>
-                    <div class="use-case-card animate-on-scroll stagger-1">
-                        <span class="use-case-icon">🎓</span>
-                        <h3>Education</h3>
-                        <p>Teachers can capture lecture slides. Students can save important textbook pages.</p>
-                    </div>
-                    <div class="use-case-card animate-on-scroll stagger-2">
-                        <span class="use-case-icon">💼</span>
-                        <h3>Client Presentations</h3>
-                        <p>Extract key visuals from PDF proposals. Build presentation materials quickly.</p>
+                    <div class="use-case-card animate-on-scroll">
+                        <div class="use-case-icon">🎨</div>
+                        <h3>Design Reference</h3>
+                        <p>Capture design specifications and mockups for your creative projects.</p>
                     </div>
                 </div>
             </div>
         </section>
 
+        <!-- How It Works Section -->
         <section class="how-it-works" id="how-it-works">
             <div class="container">
                 <div class="section-header animate-on-scroll">
                     <span class="section-label">How It Works</span>
                     <h2>Three Simple Steps</h2>
-                    <p>Get started with automatic PDF screenshots in seconds.</p>
+                    <p>Get started in under a minute.</p>
                 </div>
-                <div class="steps">
-                    <div class="step animate-on-scroll stagger-1">
-                        <div class="step-number">01</div>
-                        <h3>Install & Run</h3>
-                        <p>Download the app and launch it. It will appear in your system tray ready to capture.</p>
+                <div class="steps-container">
+                    <div class="step-card animate-on-scroll">
+                        <div class="step-number">1</div>
+                        <h3>Download & Install</h3>
+                        <p>Run the installer and follow the simple setup wizard. No complex configuration needed.</p>
                     </div>
-                    <div class="step animate-on-scroll stagger-2">
-                        <div class="step-number">02</div>
+                    <div class="step-card animate-on-scroll">
+                        <div class="step-number">2</div>
                         <h3>Open Your PDF</h3>
-                        <p>Open any PDF document in Adobe Acrobat or Adobe Reader. The tool automatically detects when Acrobat is active.</p>
+                        <p>Open any PDF document in Adobe Acrobat Reader or Pro. The app detects it automatically.</p>
                     </div>
-                    <div class="step animate-on-scroll stagger-3">
-                        <div class="step-number">03</div>
-                        <h3>Navigate Normally</h3>
-                        <p>Use Page Up, Page Down, arrow keys, or any navigation method. Screenshots are captured automatically.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Trust Notice -->
-        <section class="trust-notice" id="trust">
-            <div class="container">
-                <div class="trust-card animate-on-scroll">
-                    <div class="trust-icon">🛡️</div>
-                    <div class="trust-content">
-                        <h3>Windows SmartScreen Notice</h3>
-                        <p>When you download, Windows may show a SmartScreen warning because this is a new application. This is normal for independent software.</p>
-                        <div class="trust-steps">
-                            <div class="trust-step">
-                                <span class="trust-step-num">1</span>
-                                <span>Click <strong>"More info"</strong> on the warning</span>
-                            </div>
-                            <div class="trust-step">
-                                <span class="trust-step-num">2</span>
-                                <span>Click <strong>"Run anyway"</strong></span>
-                            </div>
-                        </div>
-                        <div class="trust-badges">
-                            <div class="trust-badge">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                                <span>100% Local Storage</span>
-                            </div>
-                            <div class="trust-badge">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-                                <span>No Internet Required</span>
-                            </div>
-                            <div class="trust-badge">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                                <span>Open Source</span>
-                            </div>
-                            <div class="trust-badge">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                                <span>No Data Collection</span>
-                            </div>
-                        </div>
+                    <div class="step-card animate-on-scroll">
+                        <div class="step-number">3</div>
+                        <h3>Navigate & Capture</h3>
+                        <p>Simply scroll or use Page Down. Screenshots are captured and saved automatically.</p>
                     </div>
                 </div>
             </div>
         </section>
 
-        <section class="installation" id="installation">
-            <div class="container">
-                <div class="section-header animate-on-scroll">
-                    <span class="section-label">Installation</span>
-                    <h2>Quick Setup Guide</h2>
-                    <p>Get up and running in under a minute.</p>
+        <!-- Trust Section -->
+        <div class="container">
+            <div class="trust-section animate-on-scroll">
+                <h3>Windows Security Note</h3>
+                <p>You may see a Windows SmartScreen warning because this is a new application. Here's how to proceed:</p>
+                <div class="trust-steps">
+                    <div class="trust-step">
+                        <span>1</span>
+                        Click "More info"
+                    </div>
+                    <div class="trust-step">
+                        <span>2</span>
+                        Click "Run anyway"
+                    </div>
                 </div>
-                <div class="install-card animate-on-scroll">
-                    <div class="install-steps">
-                        <div class="install-step">
-                            <div class="install-step-num">1</div>
-                            <div class="install-step-content">
-                                <h4>Download the Installer</h4>
-                                <p>Click the download button above to get the Windows installer.</p>
-                                <code>PDFScreenshotTool_Setup.exe</code>
-                            </div>
-                        </div>
-                        <div class="install-step">
-                            <div class="install-step-num">2</div>
-                            <div class="install-step-content">
-                                <h4>Run the Setup Wizard</h4>
-                                <p>Double-click to launch the installer. Follow the setup wizard to install the application. You can choose to add a desktop shortcut and start with Windows.</p>
-                            </div>
-                        </div>
-                        <div class="install-step">
-                            <div class="install-step-num">3</div>
-                            <div class="install-step-content">
-                                <h4>Configure Settings</h4>
-                                <p>After installation, the app will launch automatically. Right-click the system tray icon to access settings.</p>
-                                <code>Documents\PDF Screenshots</code>
-                            </div>
-                        </div>
-                        <div class="install-step">
-                            <div class="install-step-num">4</div>
-                            <div class="install-step-content">
-                                <h4>Start Using</h4>
-                                <p>Open any PDF in Adobe Acrobat and navigate through pages. Screenshots are captured automatically and saved to your chosen folder.</p>
-                            </div>
-                        </div>
+                <div class="trust-badges">
+                    <div class="trust-badge">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                        No malware
+                    </div>
+                    <div class="trust-badge">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                        Open source
+                    </div>
+                    <div class="trust-badge">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        No data collection
                     </div>
                 </div>
             </div>
-        </section>
+        </div>
 
-        <section class="settings" id="settings">
-            <div class="container">
-                <div class="settings-grid">
-                    <div class="settings-content animate-on-scroll">
-                        <span class="section-label">Settings</span>
-                        <h2>Simple, Focused Configuration</h2>
-                        <p>No complicated setup. Just the essentials you need to customize your screenshot workflow.</p>
-                        <ul class="settings-list">
-                            <li>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                Toggle capture on/off instantly
-                            </li>
-                            <li>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                Choose any folder to save screenshots
-                            </li>
-                            <li>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                Adjust capture delay for slow-loading PDFs
-                            </li>
-                            <li>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                Option to start with Windows
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="settings-preview animate-on-scroll">
-                        <div class="settings-preview-header">
-                            PDF Screenshot Tool - Settings
-                        </div>
-                        <div class="settings-preview-body">
-                            <div class="setting-row">
-                                <span class="setting-label">Enable automatic screenshots</span>
-                                <div class="toggle"></div>
-                            </div>
-                            <div class="setting-row">
-                                <span class="setting-label">Save folder</span>
-                                <span class="setting-value">Documents\PDF Screenshots</span>
-                            </div>
-                            <div class="setting-row">
-                                <span class="setting-label">Capture delay</span>
-                                <span class="setting-value">0.3 seconds</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
+        <!-- FAQ Section -->
         <section class="faq" id="faq">
             <div class="container">
                 <div class="section-header animate-on-scroll">
                     <span class="section-label">FAQ</span>
                     <h2>Frequently Asked Questions</h2>
-                    <p>Got questions? We've got answers.</p>
                 </div>
-                <div class="faq-grid">
-                    <div class="faq-item animate-on-scroll stagger-1">
-                        <div class="faq-question">
-                            Why does Windows show a security warning?
+                <div class="faq-container">
+                    <div class="faq-item animate-on-scroll">
+                        <button class="faq-question">
+                            Which PDF readers are supported?
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-                        </div>
+                        </button>
                         <div class="faq-answer">
-                            <p>Windows SmartScreen shows warnings for new applications that haven't built up reputation yet. This is normal for independent software. The app is completely safe—it stores everything locally, doesn't connect to the internet, and collects no data. Click "More info" then "Run anyway" to proceed.</p>
-                        </div>
-                    </div>
-                    <div class="faq-item animate-on-scroll stagger-2">
-                        <div class="faq-question">
-                            Does it work with other PDF readers?
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-                        </div>
-                        <div class="faq-answer">
-                            <p>Currently, the tool is optimized specifically for Adobe Acrobat and Adobe Reader. Support for other PDF readers may be added in future updates.</p>
-                        </div>
-                    </div>
-                    <div class="faq-item animate-on-scroll stagger-3">
-                        <div class="faq-question">
-                            Is my data private and secure?
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-                        </div>
-                        <div class="faq-answer">
-                            <p>Absolutely. All screenshots are saved locally to your computer. The app doesn't connect to the internet or send any data anywhere. Your documents stay completely private.</p>
-                        </div>
-                    </div>
-                    <div class="faq-item animate-on-scroll stagger-4">
-                        <div class="faq-question">
-                            Will it slow down my computer?
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-                        </div>
-                        <div class="faq-answer">
-                            <p>No. The tool is lightweight and only activates when Adobe Acrobat is in focus. It uses minimal system resources and runs quietly in the background.</p>
-                        </div>
-                    </div>
-                    <div class="faq-item animate-on-scroll stagger-5">
-                        <div class="faq-question">
-                            What image format are screenshots saved in?
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-                        </div>
-                        <div class="faq-answer">
-                            <p>Screenshots are saved as PNG files for optimal quality. File names include the document name and timestamp for easy organization.</p>
-                        </div>
-                    </div>
-                    <div class="faq-item animate-on-scroll stagger-6">
-                        <div class="faq-question">
-                            Can I use this for compliance and auditing?
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-                        </div>
-                        <div class="faq-answer">
-                            <p>Yes! The tool is perfect for creating audit trails, documenting form completion, and maintaining records for compliance requirements. Each screenshot is timestamped.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Technical Details -->
-        <section class="tech-details" id="technical">
-            <div class="container">
-                <div class="section-header animate-on-scroll">
-                    <span class="section-label">Technical Details</span>
-                    <h2>Under the Hood</h2>
-                    <p>Lightweight, efficient, and built for reliability.</p>
-                </div>
-                <div class="tech-grid">
-                    <div class="tech-card animate-on-scroll">
-                        <h3>
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-                            System Requirements
-                        </h3>
-                        <ul class="tech-list">
-                            <li>
-                                <span class="tech-label">Operating System</span>
-                                <span class="tech-value">Windows 10/11</span>
-                            </li>
-                            <li>
-                                <span class="tech-label">Memory</span>
-                                <span class="tech-value">~50 MB RAM</span>
-                            </li>
-                            <li>
-                                <span class="tech-label">Disk Space</span>
-                                <span class="tech-value">~25 MB</span>
-                            </li>
-                            <li>
-                                <span class="tech-label">PDF Reader</span>
-                                <span class="tech-value">Adobe Acrobat/Reader</span>
-                            </li>
-                            <li>
-                                <span class="tech-label">Internet</span>
-                                <span class="tech-value">Not Required</span>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="tech-card animate-on-scroll">
-                        <h3>
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 3a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3H6a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 3 3 0 0 0-3-3z"/></svg>
-                            Keyboard Shortcuts
-                        </h3>
-                        <div class="keyboard-shortcuts">
-                            <div class="shortcut-item">
-                                <div class="shortcut-keys">
-                                    <span class="key">Ctrl</span>
-                                    <span class="key">Shift</span>
-                                    <span class="key">S</span>
-                                </div>
-                                <span class="shortcut-desc">Manual capture</span>
-                            </div>
-                            <div class="shortcut-item">
-                                <div class="shortcut-keys">
-                                    <span class="key">Ctrl</span>
-                                    <span class="key">Shift</span>
-                                    <span class="key">P</span>
-                                </div>
-                                <span class="shortcut-desc">Pause/Resume</span>
-                            </div>
-                            <div class="shortcut-item">
-                                <div class="shortcut-keys">
-                                    <span class="key">PgUp</span>
-                                    <span class="key">PgDn</span>
-                                </div>
-                                <span class="shortcut-desc">Auto-capture trigger</span>
-                            </div>
-                            <div class="shortcut-item">
-                                <div class="shortcut-keys">
-                                    <span class="key">↑</span>
-                                    <span class="key">↓</span>
-                                    <span class="key">←</span>
-                                    <span class="key">→</span>
-                                </div>
-                                <span class="shortcut-desc">Navigation capture</span>
+                            <div class="faq-answer-inner">
+                                PDF Screenshot Tool works with Adobe Acrobat Reader DC and Adobe Acrobat Pro. Other PDF readers are not currently supported.
                             </div>
                         </div>
                     </div>
-                    <div class="tech-card animate-on-scroll">
-                        <h3>
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-                            Output Formats
-                        </h3>
-                        <ul class="tech-list">
-                            <li>
-                                <span class="tech-label">PNG Format</span>
-                                <span class="tech-value">Lossless quality</span>
-                            </li>
-                            <li>
-                                <span class="tech-label">JPEG Format</span>
-                                <span class="tech-value">Configurable quality</span>
-                            </li>
-                            <li>
-                                <span class="tech-label">Export to PDF</span>
-                                <span class="tech-value">Combine all captures</span>
-                            </li>
-                            <li>
-                                <span class="tech-label">Export to ZIP</span>
-                                <span class="tech-value">Batch archive</span>
-                            </li>
-                            <li>
-                                <span class="tech-label">Naming</span>
-                                <span class="tech-value">DocName_Timestamp</span>
-                            </li>
-                        </ul>
+                    <div class="faq-item animate-on-scroll">
+                        <button class="faq-question">
+                            Where are screenshots saved?
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                        </button>
+                        <div class="faq-answer">
+                            <div class="faq-answer-inner">
+                                By default, screenshots are saved to Documents/PDF Screenshots. You can change this location in the settings.
+                            </div>
+                        </div>
                     </div>
-                    <div class="tech-card animate-on-scroll">
-                        <h3>
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                            Privacy & Security
-                        </h3>
-                        <ul class="tech-list">
-                            <li>
-                                <span class="tech-label">Data Storage</span>
-                                <span class="tech-value">100% Local</span>
-                            </li>
-                            <li>
-                                <span class="tech-label">Network Access</span>
-                                <span class="tech-value">None Required</span>
-                            </li>
-                            <li>
-                                <span class="tech-label">Telemetry</span>
-                                <span class="tech-value">None</span>
-                            </li>
-                            <li>
-                                <span class="tech-label">Portable Mode</span>
-                                <span class="tech-value">Available</span>
-                            </li>
-                            <li>
-                                <span class="tech-label">Auto-Cleanup</span>
-                                <span class="tech-value">Configurable</span>
-                            </li>
-                        </ul>
+                    <div class="faq-item animate-on-scroll">
+                        <button class="faq-question">
+                            Does it work with password-protected PDFs?
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                        </button>
+                        <div class="faq-answer">
+                            <div class="faq-answer-inner">
+                                Yes, as long as you can view the PDF in Adobe Acrobat, the tool can capture screenshots of it.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="faq-item animate-on-scroll">
+                        <button class="faq-question">
+                            Is my data sent anywhere?
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                        </button>
+                        <div class="faq-answer">
+                            <div class="faq-answer-inner">
+                                No. PDF Screenshot Tool runs entirely on your computer. No data is collected or transmitted. The only network request is the optional update check to GitHub.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="faq-item animate-on-scroll">
+                        <button class="faq-question">
+                            Can I use this for commercial purposes?
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                        </button>
+                        <div class="faq-answer">
+                            <div class="faq-answer-inner">
+                                Yes, the tool is free for both personal and commercial use.
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Changelog -->
+        <!-- Changelog Section -->
         <section class="changelog" id="changelog">
             <div class="container">
                 <div class="section-header animate-on-scroll">
@@ -2066,7 +1499,6 @@
                 </div>
                 <div class="changelog-container">
                     <div class="changelog-item animate-on-scroll">
-                        <div class="changelog-dot"></div>
                         <div class="changelog-version">
                             <span class="version-tag">v2.1.0</span>
                             <span class="version-date">January 2026</span>
@@ -2076,53 +1508,28 @@
                         <ul class="changelog-features">
                             <li>
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                <span><span class="feature-tag new">New</span>Automatic update checking from GitHub releases</span>
+                                <span><span class="feature-tag new">New</span>Automatic update checking</span>
                             </li>
                             <li>
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                <span><span class="feature-tag new">New</span>One-click download and install updates</span>
+                                <span><span class="feature-tag new">New</span>One-click download and install</span>
                             </li>
                             <li>
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                <span><span class="feature-tag new">New</span>Skip version option for update reminders</span>
+                                <span><span class="feature-tag new">New</span>Advanced settings with tabs</span>
                             </li>
                             <li>
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                <span><span class="feature-tag new">New</span>Advanced settings with tabbed interface</span>
+                                <span><span class="feature-tag new">New</span>Image processing options</span>
                             </li>
                             <li>
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                <span><span class="feature-tag new">New</span>Capture cooldown and scroll distance settings</span>
-                            </li>
-                            <li>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                <span><span class="feature-tag new">New</span>Image processing: grayscale, borders, resize</span>
-                            </li>
-                            <li>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                <span><span class="feature-tag new">New</span>File organization by date (daily/weekly/monthly)</span>
-                            </li>
-                            <li>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                <span><span class="feature-tag new">New</span>Filename whitelist/blacklist filters</span>
-                            </li>
-                            <li>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                <span><span class="feature-tag new">New</span>Custom filename templates</span>
-                            </li>
-                            <li>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                <span><span class="feature-tag fixed">Fixed</span>PDF detection now works reliably</span>
-                            </li>
-                            <li>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                <span><span class="feature-tag improved">Improved</span>Professional installer with branding</span>
+                                <span><span class="feature-tag fixed">Fixed</span>PDF detection reliability</span>
                             </li>
                         </ul>
                     </div>
 
                     <div class="changelog-item animate-on-scroll">
-                        <div class="changelog-dot"></div>
                         <div class="changelog-version">
                             <span class="version-tag">v2.0.0</span>
                             <span class="version-date">January 2026</span>
@@ -2131,95 +1538,24 @@
                         <ul class="changelog-features">
                             <li>
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                <span><span class="feature-tag new">New</span>Statistics dashboard with capture analytics</span>
+                                <span><span class="feature-tag new">New</span>Statistics dashboard</span>
                             </li>
                             <li>
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                <span><span class="feature-tag new">New</span>Session management for organized captures</span>
+                                <span><span class="feature-tag new">New</span>Session management</span>
                             </li>
                             <li>
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                <span><span class="feature-tag new">New</span>Recent captures viewer with quick access</span>
+                                <span><span class="feature-tag new">New</span>Batch export to ZIP/PDF</span>
                             </li>
                             <li>
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                <span><span class="feature-tag new">New</span>Batch actions: Export to ZIP/PDF, cleanup tools</span>
-                            </li>
-                            <li>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                <span><span class="feature-tag new">New</span>Sound feedback on capture (toggleable)</span>
-                            </li>
-                            <li>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                <span><span class="feature-tag new">New</span>Pause/Resume hotkey (Ctrl+Shift+P)</span>
-                            </li>
-                            <li>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                <span><span class="feature-tag new">New</span>Dark mode UI throughout the app</span>
-                            </li>
-                            <li>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                <span><span class="feature-tag new">New</span>Auto-cleanup for old screenshots</span>
-                            </li>
-                            <li>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                <span><span class="feature-tag new">New</span>Capture document area only option</span>
-                            </li>
-                            <li>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                <span><span class="feature-tag new">New</span>Portable mode support</span>
+                                <span><span class="feature-tag new">New</span>Pause/Resume hotkey</span>
                             </li>
                         </ul>
                     </div>
 
                     <div class="changelog-item animate-on-scroll">
-                        <div class="changelog-dot"></div>
-                        <div class="changelog-version">
-                            <span class="version-tag">v1.5.0</span>
-                            <span class="version-date">January 2026</span>
-                        </div>
-                        <h4 class="changelog-title">PDF Detection & Notifications</h4>
-                        <ul class="changelog-features">
-                            <li>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                <span><span class="feature-tag improved">Improved</span>Only capture when actual PDF is open</span>
-                            </li>
-                            <li>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                <span><span class="feature-tag new">New</span>Toggle notifications on/off in settings</span>
-                            </li>
-                            <li>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                <span><span class="feature-tag fixed">Fixed</span>Setup wizard button visibility</span>
-                            </li>
-                        </ul>
-                    </div>
-
-                    <div class="changelog-item animate-on-scroll">
-                        <div class="changelog-dot"></div>
-                        <div class="changelog-version">
-                            <span class="version-tag">v1.4.0</span>
-                            <span class="version-date">January 2026</span>
-                        </div>
-                        <h4 class="changelog-title">First-Run Setup Wizard</h4>
-                        <ul class="changelog-features">
-                            <li>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                <span><span class="feature-tag new">New</span>Guided setup wizard on first launch</span>
-                            </li>
-                            <li>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                <span><span class="feature-tag new">New</span>How-to-use instructions included</span>
-                            </li>
-                            <li>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                <span><span class="feature-tag improved">Improved</span>Better onboarding experience</span>
-                            </li>
-                        </ul>
-                    </div>
-
-                    <div class="changelog-item animate-on-scroll">
-                        <div class="changelog-dot"></div>
                         <div class="changelog-version">
                             <span class="version-tag">v1.0.0</span>
                             <span class="version-date">January 2026</span>
@@ -2228,35 +1564,19 @@
                         <ul class="changelog-features">
                             <li>
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                <span>Automatic screenshot capture on page navigation</span>
+                                <span>Automatic screenshot capture</span>
                             </li>
                             <li>
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                <span>System tray integration with status colors</span>
+                                <span>System tray integration</span>
                             </li>
                             <li>
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                <span>Mouse scroll capture support</span>
+                                <span>Manual capture hotkey</span>
                             </li>
                             <li>
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                <span>Manual capture hotkey (Ctrl+Shift+S)</span>
-                            </li>
-                            <li>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                <span>PNG/JPEG format options</span>
-                            </li>
-                            <li>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                <span>Start with Windows option</span>
-                            </li>
-                            <li>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                <span>Duplicate detection to avoid redundant captures</span>
-                            </li>
-                            <li>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                <span>DPI awareness for high-resolution displays</span>
+                                <span>Duplicate detection</span>
                             </li>
                         </ul>
                     </div>
@@ -2265,57 +1585,57 @@
         </section>
     </main>
 
+    <!-- Footer -->
     <footer>
         <div class="container">
-            <div class="footer-inner">
-                <p class="footer-text">© 2026 PDF Screenshot Tool. All rights reserved.</p>
-                <div class="footer-links">
-                    <a href="#">Privacy Policy</a>
-                    <a href="#">Terms of Service</a>
-                    <a href="#">Support</a>
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <div class="logo-icon">
+                        <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                    </div>
+                    PDF Screenshot Tool
                 </div>
+                <ul class="footer-links">
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#faq">FAQ</a></li>
+                    <li><a href="#changelog">Changelog</a></li>
+                    <li><a href="https://github.com/draphael123/adobe-reader" target="_blank">GitHub</a></li>
+                </ul>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 PDF Screenshot Tool. Free and open source.</p>
             </div>
         </div>
     </footer>
 
+    <!-- Back to Top Button -->
     <button class="back-to-top" id="backToTop" aria-label="Back to top">
-        <svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>
     </button>
 
     <script>
         // Mobile menu toggle
         const mobileMenuBtn = document.getElementById('mobileMenuBtn');
         const mobileNav = document.getElementById('mobileNav');
-        const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
 
         mobileMenuBtn.addEventListener('click', () => {
             mobileMenuBtn.classList.toggle('active');
             mobileNav.classList.toggle('active');
-            document.body.style.overflow = mobileNav.classList.contains('active') ? 'hidden' : '';
         });
 
-        mobileNavLinks.forEach(link => {
+        // Close mobile menu when clicking a link
+        document.querySelectorAll('.mobile-nav-link').forEach(link => {
             link.addEventListener('click', () => {
                 mobileMenuBtn.classList.remove('active');
                 mobileNav.classList.remove('active');
-                document.body.style.overflow = '';
             });
-        });
-
-        // Header scroll effect
-        const header = document.getElementById('header');
-        window.addEventListener('scroll', () => {
-            if (window.scrollY > 50) {
-                header.classList.add('scrolled');
-            } else {
-                header.classList.remove('scrolled');
-            }
         });
 
         // Back to top button
         const backToTop = document.getElementById('backToTop');
+
         window.addEventListener('scroll', () => {
-            if (window.scrollY > 500) {
+            if (window.scrollY > 400) {
                 backToTop.classList.add('visible');
             } else {
                 backToTop.classList.remove('visible');
@@ -2324,6 +1644,24 @@
 
         backToTop.addEventListener('click', () => {
             window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        // FAQ accordion
+        document.querySelectorAll('.faq-question').forEach(button => {
+            button.addEventListener('click', () => {
+                const item = button.parentElement;
+                const isActive = item.classList.contains('active');
+                
+                // Close all
+                document.querySelectorAll('.faq-item').forEach(faq => {
+                    faq.classList.remove('active');
+                });
+                
+                // Open clicked if it wasn't active
+                if (!isActive) {
+                    item.classList.add('active');
+                }
+            });
         });
 
         // Scroll animations
@@ -2342,24 +1680,6 @@
 
         document.querySelectorAll('.animate-on-scroll').forEach(el => {
             observer.observe(el);
-        });
-
-        // FAQ accordion
-        document.querySelectorAll('.faq-question').forEach(question => {
-            question.addEventListener('click', () => {
-                const faqItem = question.parentElement;
-                const isActive = faqItem.classList.contains('active');
-                
-                // Close all other FAQ items
-                document.querySelectorAll('.faq-item').forEach(item => {
-                    item.classList.remove('active');
-                });
-                
-                // Toggle current item
-                if (!isActive) {
-                    faqItem.classList.add('active');
-                }
-            });
         });
     </script>
 </body>
