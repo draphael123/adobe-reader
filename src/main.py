@@ -2045,13 +2045,15 @@ class SettingsWindow:
         png_radio = ttk.Radiobutton(format_frame, text="PNG (lossless)", variable=self.format_var, value='png')
         png_radio.pack(side=tk.LEFT, padx=(10, 5))
         jpeg_radio = ttk.Radiobutton(format_frame, text="JPEG (smaller)", variable=self.format_var, value='jpeg')
-        jpeg_radio.pack(side=tk.LEFT)
+        jpeg_radio.pack(side=tk.LEFT, padx=5)
+        webp_radio = ttk.Radiobutton(format_frame, text="WebP (modern)", variable=self.format_var, value='webp')
+        webp_radio.pack(side=tk.LEFT)
         
-        # JPEG quality
+        # Quality (for JPEG/WebP)
         quality_frame = ttk.Frame(main_frame)
         quality_frame.pack(fill=tk.X, pady=5)
         
-        ttk.Label(quality_frame, text="JPEG quality:").pack(side=tk.LEFT)
+        ttk.Label(quality_frame, text="Quality (JPEG/WebP):").pack(side=tk.LEFT)
         
         self.quality_var = tk.StringVar(value=str(self.config.get('jpeg_quality')))
         quality_spin = ttk.Spinbox(
