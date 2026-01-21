@@ -12,6 +12,10 @@ import logging
 import shutil
 import zipfile
 import winsound
+import subprocess
+import tempfile
+import urllib.request
+import urllib.error
 from datetime import datetime, timedelta
 from pathlib import Path
 import hashlib
@@ -23,6 +27,12 @@ import pygetwindow as gw
 import mss
 import mss.tools
 import json
+
+# Application version
+APP_VERSION = "2.1.0"
+GITHUB_REPO = "draphael123/adobe-reader"
+UPDATE_CHECK_URL = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
+DOWNLOAD_PAGE_URL = f"https://github.com/{GITHUB_REPO}/releases/latest"
 
 # Single instance check using Windows mutex
 SINGLE_INSTANCE_MUTEX = None
@@ -177,6 +187,12 @@ DEFAULT_CONFIG = {
     'filename_blacklist': '',  # comma-separated patterns to exclude
     'min_window_width': 200,  # minimum window width to capture
     'min_window_height': 200,  # minimum window height to capture
+    
+    # Auto-update
+    'auto_update_check': True,  # check for updates on startup
+    'update_check_interval': 24,  # hours between update checks
+    'last_update_check': None,  # timestamp of last check
+    'skipped_version': None,  # version user chose to skip
 }
 
 # Default statistics
@@ -307,6 +323,191 @@ class Config:
     def set(self, key, value):
         self.config[key] = value
         self.save()
+
+
+class UpdateChecker:
+    """Handles checking for and downloading updates."""
+    
+    def __init__(self, config):
+        self.config = config
+        self.latest_version = None
+        self.download_url = None
+        self.release_notes = None
+        self.checking = False
+    
+    def parse_version(self, version_str):
+        """Parse version string into tuple for comparison."""
+        try:
+            # Remove 'v' prefix if present
+            v = version_str.strip().lstrip('v')
+            parts = v.split('.')
+            return tuple(int(p) for p in parts[:3])
+        except:
+            return (0, 0, 0)
+    
+    def is_newer_version(self, latest, current):
+        """Check if latest version is newer than current."""
+        return self.parse_version(latest) > self.parse_version(current)
+    
+    def should_check(self):
+        """Determine if we should check for updates based on interval."""
+        if not self.config.get('auto_update_check'):
+            return False
+        
+        last_check = self.config.get('last_update_check')
+        if not last_check:
+            return True
+        
+        try:
+            last_check_time = datetime.fromisoformat(last_check)
+            hours_since = (datetime.now() - last_check_time).total_seconds() / 3600
+            return hours_since >= self.config.get('update_check_interval')
+        except:
+            return True
+    
+    def check_for_updates(self, force=False, callback=None):
+        """Check GitHub releases for updates. Runs in background thread."""
+        if self.checking:
+            return
+        
+        if not force and not self.should_check():
+            logger.debug("Skipping update check (not due yet)")
+            return
+        
+        def check_thread():
+            self.checking = True
+            try:
+                logger.info("Checking for updates...")
+                
+                # Create request with headers
+                req = urllib.request.Request(
+                    UPDATE_CHECK_URL,
+                    headers={
+                        'User-Agent': f'PDFScreenshotTool/{APP_VERSION}',
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                )
+                
+                with urllib.request.urlopen(req, timeout=10) as response:
+                    data = json.loads(response.read().decode('utf-8'))
+                
+                self.latest_version = data.get('tag_name', '').lstrip('v')
+                self.release_notes = data.get('body', '')
+                
+                # Find the installer asset
+                assets = data.get('assets', [])
+                for asset in assets:
+                    if 'Setup' in asset.get('name', '') and asset.get('name', '').endswith('.exe'):
+                        self.download_url = asset.get('browser_download_url')
+                        break
+                
+                # Fallback to release page if no direct download found
+                if not self.download_url:
+                    self.download_url = data.get('html_url', DOWNLOAD_PAGE_URL)
+                
+                # Update last check time
+                self.config.set('last_update_check', datetime.now().isoformat())
+                
+                # Check if newer version available
+                if self.latest_version and self.is_newer_version(self.latest_version, APP_VERSION):
+                    # Check if user skipped this version
+                    skipped = self.config.get('skipped_version')
+                    if skipped != self.latest_version:
+                        logger.info(f"New version available: {self.latest_version}")
+                        if callback:
+                            callback(self.latest_version, self.release_notes, self.download_url)
+                    else:
+                        logger.info(f"Version {self.latest_version} was skipped by user")
+                else:
+                    logger.info(f"No updates available (current: {APP_VERSION}, latest: {self.latest_version})")
+                    if callback:
+                        callback(None, None, None)  # Signal no update
+                        
+            except urllib.error.URLError as e:
+                logger.warning(f"Could not check for updates (network error): {e}")
+                if callback:
+                    callback(None, None, None)
+            except Exception as e:
+                logger.error(f"Error checking for updates: {e}")
+                if callback:
+                    callback(None, None, None)
+            finally:
+                self.checking = False
+        
+        thread = threading.Thread(target=check_thread, daemon=True)
+        thread.start()
+    
+    def download_and_install(self, callback=None):
+        """Download the update and run the installer."""
+        if not self.download_url:
+            logger.error("No download URL available")
+            return
+        
+        def download_thread():
+            try:
+                logger.info(f"Downloading update from: {self.download_url}")
+                
+                if callback:
+                    callback('downloading', 0)
+                
+                # Download to temp directory
+                temp_dir = Path(tempfile.gettempdir())
+                installer_path = temp_dir / f"PDFScreenshotTool_Setup_{self.latest_version}.exe"
+                
+                req = urllib.request.Request(
+                    self.download_url,
+                    headers={'User-Agent': f'PDFScreenshotTool/{APP_VERSION}'}
+                )
+                
+                with urllib.request.urlopen(req, timeout=60) as response:
+                    total_size = int(response.headers.get('content-length', 0))
+                    downloaded = 0
+                    chunk_size = 8192
+                    
+                    with open(installer_path, 'wb') as f:
+                        while True:
+                            chunk = response.read(chunk_size)
+                            if not chunk:
+                                break
+                            f.write(chunk)
+                            downloaded += len(chunk)
+                            
+                            if callback and total_size > 0:
+                                progress = int((downloaded / total_size) * 100)
+                                callback('downloading', progress)
+                
+                logger.info(f"Download complete: {installer_path}")
+                
+                if callback:
+                    callback('installing', 100)
+                
+                # Run the installer (this will close the current app)
+                logger.info("Launching installer...")
+                subprocess.Popen([str(installer_path)], shell=True)
+                
+                # Exit the current app to allow update
+                if callback:
+                    callback('done', 100)
+                
+            except Exception as e:
+                logger.error(f"Error downloading update: {e}")
+                if callback:
+                    callback('error', str(e))
+        
+        thread = threading.Thread(target=download_thread, daemon=True)
+        thread.start()
+    
+    def skip_version(self, version):
+        """Mark a version as skipped."""
+        self.config.set('skipped_version', version)
+        logger.info(f"Skipped version: {version}")
+    
+    def open_download_page(self):
+        """Open the download page in the default browser."""
+        import webbrowser
+        url = self.download_url or DOWNLOAD_PAGE_URL
+        webbrowser.open(url)
+        logger.info(f"Opened download page: {url}")
 
 
 def get_executable_path():
@@ -2255,6 +2456,41 @@ class AdvancedSettingsWindow:
         ttk.Entry(sound_frame, textvariable=self.sound_file_var, width=40).pack(side=tk.LEFT)
         ttk.Button(sound_frame, text="Browse", command=self.browse_sound).pack(side=tk.LEFT, padx=5)
         
+        # === Updates Tab ===
+        updates_frame = ttk.Frame(notebook, padding=15)
+        notebook.add(updates_frame, text="Updates")
+        
+        ttk.Label(updates_frame, text="Auto-Update Settings", style='Header.TLabel').pack(anchor=tk.W)
+        ttk.Separator(updates_frame, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=5)
+        
+        self.auto_update_var = tk.BooleanVar(value=self.config.get('auto_update_check'))
+        ttk.Checkbutton(
+            updates_frame, 
+            text="Automatically check for updates",
+            variable=self.auto_update_var
+        ).pack(anchor=tk.W, pady=2)
+        
+        interval_frame = ttk.Frame(updates_frame)
+        interval_frame.pack(fill=tk.X, pady=5)
+        ttk.Label(interval_frame, text="Check every:").pack(side=tk.LEFT)
+        self.update_interval_var = tk.StringVar(value=str(self.config.get('update_check_interval')))
+        ttk.Spinbox(interval_frame, from_=1, to=168, increment=1, textvariable=self.update_interval_var, width=8).pack(side=tk.LEFT, padx=5)
+        ttk.Label(interval_frame, text="hours").pack(side=tk.LEFT)
+        
+        ttk.Separator(updates_frame, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=15)
+        
+        ttk.Label(updates_frame, text="Current Version", style='Header.TLabel').pack(anchor=tk.W)
+        ttk.Separator(updates_frame, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=5)
+        
+        ttk.Label(updates_frame, text=f"Version: {APP_VERSION}", font=('Segoe UI', 10)).pack(anchor=tk.W, pady=5)
+        
+        skipped = self.config.get('skipped_version')
+        if skipped:
+            skip_frame = ttk.Frame(updates_frame)
+            skip_frame.pack(fill=tk.X, pady=5)
+            ttk.Label(skip_frame, text=f"Skipped version: {skipped}").pack(side=tk.LEFT)
+            ttk.Button(skip_frame, text="Clear", command=self.clear_skipped_version).pack(side=tk.LEFT, padx=10)
+        
         # Save/Close buttons
         btn_frame = ttk.Frame(self.window)
         btn_frame.pack(fill=tk.X, padx=10, pady=10)
@@ -2309,8 +2545,17 @@ class AdvancedSettingsWindow:
         self.config.set('sound_volume', int(self.volume_var.get()))
         self.config.set('custom_sound_file', self.sound_file_var.get())
         
+        # Update settings
+        self.config.set('auto_update_check', self.auto_update_var.get())
+        self.config.set('update_check_interval', int(self.update_interval_var.get()))
+        
         logger.info("Advanced settings saved")
         self.close()
+    
+    def clear_skipped_version(self):
+        """Clear the skipped version."""
+        self.config.set('skipped_version', None)
+        logger.info("Cleared skipped version")
     
     def close(self):
         if self.window:
@@ -2333,6 +2578,7 @@ class PDFScreenshotTool:
         self.config = Config()
         self.stats = Statistics()
         self.session_manager = SessionManager(self.config)
+        self.update_checker = UpdateChecker(self.config)
         self.monitor = AcrobatMonitor(
             self.config, 
             self.stats,
@@ -2515,6 +2761,239 @@ class PDFScreenshotTool:
         """Check if a session is active."""
         return self.session_manager.current_session is not None
     
+    def check_for_updates(self, icon=None, item=None):
+        """Manually check for updates."""
+        def on_update_result(version, notes, url):
+            if version:
+                self.show_update_dialog(version, notes, url)
+            else:
+                # Show "no updates" notification
+                if self.icon:
+                    self.icon.notify(
+                        "No Updates Available",
+                        f"You're running the latest version (v{APP_VERSION})"
+                    )
+        
+        self.update_checker.check_for_updates(force=True, callback=on_update_result)
+    
+    def auto_check_updates(self):
+        """Auto-check for updates on startup."""
+        def on_update_result(version, notes, url):
+            if version:
+                self.show_update_dialog(version, notes, url)
+        
+        self.update_checker.check_for_updates(force=False, callback=on_update_result)
+    
+    def show_update_dialog(self, version, notes, url):
+        """Show update available dialog."""
+        def show_dialog():
+            import tkinter as tk
+            from tkinter import messagebox, scrolledtext
+            
+            root = tk.Tk()
+            root.withdraw()
+            root.attributes('-topmost', True)
+            
+            # Create custom dialog
+            dialog = tk.Toplevel(root)
+            dialog.title("Update Available")
+            dialog.geometry("450x350")
+            dialog.resizable(False, False)
+            dialog.attributes('-topmost', True)
+            
+            # Center on screen
+            dialog.update_idletasks()
+            x = (dialog.winfo_screenwidth() - 450) // 2
+            y = (dialog.winfo_screenheight() - 350) // 2
+            dialog.geometry(f"+{x}+{y}")
+            
+            # Header
+            header = tk.Frame(dialog, bg='#f97316', height=60)
+            header.pack(fill=tk.X)
+            header.pack_propagate(False)
+            
+            tk.Label(
+                header,
+                text="🎉 New Version Available!",
+                font=('Segoe UI', 14, 'bold'),
+                fg='white',
+                bg='#f97316'
+            ).pack(expand=True)
+            
+            # Content frame
+            content = tk.Frame(dialog, padx=20, pady=15)
+            content.pack(fill=tk.BOTH, expand=True)
+            
+            tk.Label(
+                content,
+                text=f"Version {version} is now available",
+                font=('Segoe UI', 11),
+                fg='#1a1a2e'
+            ).pack(anchor=tk.W)
+            
+            tk.Label(
+                content,
+                text=f"You have version {APP_VERSION}",
+                font=('Segoe UI', 9),
+                fg='#666666'
+            ).pack(anchor=tk.W, pady=(0, 10))
+            
+            # Release notes
+            if notes:
+                tk.Label(
+                    content,
+                    text="What's New:",
+                    font=('Segoe UI', 10, 'bold'),
+                    fg='#1a1a2e'
+                ).pack(anchor=tk.W, pady=(5, 3))
+                
+                notes_text = scrolledtext.ScrolledText(
+                    content,
+                    height=8,
+                    font=('Segoe UI', 9),
+                    wrap=tk.WORD,
+                    bg='#f5f5f5',
+                    relief=tk.FLAT
+                )
+                notes_text.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
+                notes_text.insert(tk.END, notes[:500] + ('...' if len(notes) > 500 else ''))
+                notes_text.config(state=tk.DISABLED)
+            
+            # Buttons
+            btn_frame = tk.Frame(dialog)
+            btn_frame.pack(fill=tk.X, padx=20, pady=15)
+            
+            result = {'action': None}
+            
+            def download_update():
+                result['action'] = 'download'
+                dialog.destroy()
+                root.destroy()
+            
+            def skip_version():
+                result['action'] = 'skip'
+                dialog.destroy()
+                root.destroy()
+            
+            def remind_later():
+                result['action'] = 'later'
+                dialog.destroy()
+                root.destroy()
+            
+            tk.Button(
+                btn_frame,
+                text="Download & Install",
+                command=download_update,
+                font=('Segoe UI', 10),
+                bg='#22c55e',
+                fg='white',
+                relief=tk.FLAT,
+                padx=15,
+                pady=5,
+                cursor='hand2'
+            ).pack(side=tk.LEFT)
+            
+            tk.Button(
+                btn_frame,
+                text="Skip This Version",
+                command=skip_version,
+                font=('Segoe UI', 10),
+                relief=tk.FLAT,
+                padx=10,
+                pady=5
+            ).pack(side=tk.LEFT, padx=10)
+            
+            tk.Button(
+                btn_frame,
+                text="Remind Later",
+                command=remind_later,
+                font=('Segoe UI', 10),
+                relief=tk.FLAT,
+                padx=10,
+                pady=5
+            ).pack(side=tk.RIGHT)
+            
+            dialog.protocol("WM_DELETE_WINDOW", remind_later)
+            dialog.wait_window()
+            
+            # Handle result
+            if result['action'] == 'download':
+                self.start_update_download(url)
+            elif result['action'] == 'skip':
+                self.update_checker.skip_version(version)
+        
+        # Run in main thread
+        threading.Thread(target=show_dialog, daemon=True).start()
+    
+    def start_update_download(self, url):
+        """Start downloading and installing the update."""
+        def show_progress():
+            import tkinter as tk
+            from tkinter import ttk
+            
+            root = tk.Tk()
+            root.title("Downloading Update")
+            root.geometry("350x120")
+            root.resizable(False, False)
+            root.attributes('-topmost', True)
+            
+            # Center on screen
+            root.update_idletasks()
+            x = (root.winfo_screenwidth() - 350) // 2
+            y = (root.winfo_screenheight() - 120) // 2
+            root.geometry(f"+{x}+{y}")
+            
+            frame = tk.Frame(root, padx=20, pady=20)
+            frame.pack(fill=tk.BOTH, expand=True)
+            
+            status_label = tk.Label(
+                frame,
+                text="Downloading update...",
+                font=('Segoe UI', 10)
+            )
+            status_label.pack()
+            
+            progress = ttk.Progressbar(
+                frame,
+                mode='determinate',
+                length=280
+            )
+            progress.pack(pady=15)
+            
+            percent_label = tk.Label(
+                frame,
+                text="0%",
+                font=('Segoe UI', 9),
+                fg='#666666'
+            )
+            percent_label.pack()
+            
+            def on_progress(status, value):
+                if status == 'downloading':
+                    progress['value'] = value
+                    percent_label.config(text=f"{value}%")
+                elif status == 'installing':
+                    status_label.config(text="Starting installer...")
+                    progress['value'] = 100
+                    percent_label.config(text="100%")
+                elif status == 'done':
+                    root.destroy()
+                    # Quit the app to allow installer to run
+                    self.running = False
+                    self.monitor.stop()
+                    if self.icon:
+                        self.icon.stop()
+                elif status == 'error':
+                    status_label.config(text=f"Error: {value}")
+                    progress['value'] = 0
+            
+            # Start download
+            self.update_checker.download_and_install(callback=lambda s, v: root.after(0, on_progress, s, v))
+            
+            root.mainloop()
+        
+        threading.Thread(target=show_progress, daemon=True).start()
+    
     def quit_app(self, icon, item):
         """Quit the application."""
         logger.info("Application shutting down")
@@ -2572,6 +3051,7 @@ class PDFScreenshotTool:
             pystray.MenuItem("Open Screenshot Folder", self.open_folder),
             pystray.MenuItem("Settings...", self.open_settings),
             pystray.Menu.SEPARATOR,
+            pystray.MenuItem(f"Check for Updates (v{APP_VERSION})", self.check_for_updates),
             pystray.MenuItem("Quit", self.quit_app)
         )
         
@@ -2583,6 +3063,10 @@ class PDFScreenshotTool:
         )
         
         logger.info("PDF Screenshot Tool is running")
+        
+        # Check for updates on startup (if enabled)
+        if self.config.get('auto_update_check'):
+            threading.Timer(5.0, self.auto_check_updates).start()
         
         self.icon.run()
 
