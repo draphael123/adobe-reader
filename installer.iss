@@ -35,9 +35,12 @@ Compression=lzma2/ultra64
 SolidCompression=yes
 LZMAUseSeparateProcess=yes
 
-; Visual settings
+; Visual settings - Modern wizard with custom images
 WizardStyle=modern
-WizardSizePercent=110
+WizardSizePercent=120
+WizardImageFile=assets\wizard_image.bmp
+WizardSmallImageFile=assets\wizard_small_image.bmp
+WizardImageStretch=yes
 
 ; Privileges (no admin required - installs to user folder)
 PrivilegesRequired=lowest
@@ -55,67 +58,122 @@ VersionInfoProductVersion={#MyAppVersion}
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Messages]
-WelcomeLabel1=Welcome to [name] Setup
-WelcomeLabel2=This will install [name/ver] on your computer.%n%nThe application will automatically capture screenshots of PDF pages as you navigate in Adobe Acrobat.%n%nClick Next to continue.
+WelcomeLabel1=Welcome to PDF Screenshot Tool
+WelcomeLabel2=The ultimate tool for capturing PDF pages in Adobe Acrobat.%n%n✓  Automatic capture as you navigate pages%n✓  Smart duplicate detection%n✓  Customizable hotkeys%n✓  Advanced image processing%n%nVersion {#MyAppVersion}%n%nClick Next to continue.
+FinishedLabel=Setup has successfully installed [name] on your computer.%n%nThe application will run in your system tray (look for the camera icon near your clock).%n%nRight-click the tray icon to access settings and controls.
+FinishedHeadingLabel=Installation Complete!
 
 [Tasks]
-Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
-Name: "startupicon"; Description: "Start automatically with Windows"; GroupDescription: "Startup:"
+Name: "desktopicon"; Description: "Create a &desktop shortcut"; GroupDescription: "Additional Options:"; Flags: checkedonce
+Name: "startupicon"; Description: "&Start automatically with Windows (recommended)"; GroupDescription: "Additional Options:"; Flags: checkedonce
 
 [Files]
 Source: "dist\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "assets\icon.ico"; DestDir: "{app}"; Flags: ignoreversion
-; Add any additional files here
 
 [Icons]
-Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
+Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\icon.ico"
 Name: "{group}\Uninstall {#MyAppName}"; Filename: "{uninstallexe}"
-Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
+Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\icon.ico"; Tasks: desktopicon
 
 [Registry]
 ; Add to Windows startup if selected
 Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "PDFScreenshotTool"; ValueData: """{app}\{#MyAppExeName}"""; Flags: uninsdeletevalue; Tasks: startupicon
 
 [Run]
-Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\{#MyAppExeName}"; Description: "Launch {#MyAppName} now"; Flags: nowait postinstall skipifsilent
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{app}"
 
 [Code]
-// Custom colors and styling
+// Modern color scheme
 const
-  BrandColor = $00F97316;  // Orange accent color
-
+  COLOR_BACKGROUND = $00FFFFFF;     // White background
+  COLOR_PRIMARY = $00F97316;        // Orange accent
+  COLOR_DARK = $001A1A2E;           // Dark text
+  COLOR_SECONDARY = $00666666;      // Gray text
+  COLOR_ACCENT = $004F46E5;         // Purple accent
+  COLOR_SUCCESS = $0022C55E;        // Green
+  
 procedure InitializeWizard;
 begin
-  // Customize wizard appearance
-  WizardForm.Color := clWhite;
+  // Main wizard styling
+  WizardForm.Color := COLOR_BACKGROUND;
   
-  // Style the welcome page
-  WizardForm.WelcomeLabel1.Font.Size := 16;
+  // Welcome page styling
+  WizardForm.WelcomeLabel1.Font.Name := 'Segoe UI';
+  WizardForm.WelcomeLabel1.Font.Size := 18;
   WizardForm.WelcomeLabel1.Font.Style := [fsBold];
-  WizardForm.WelcomeLabel1.Font.Color := $001A1A2E;
+  WizardForm.WelcomeLabel1.Font.Color := COLOR_DARK;
   
+  WizardForm.WelcomeLabel2.Font.Name := 'Segoe UI';
   WizardForm.WelcomeLabel2.Font.Size := 10;
-  WizardForm.WelcomeLabel2.Font.Color := $00666666;
+  WizardForm.WelcomeLabel2.Font.Color := COLOR_SECONDARY;
   
-  // Style finish page
+  // Finish page styling
+  WizardForm.FinishedLabel.Font.Name := 'Segoe UI';
   WizardForm.FinishedLabel.Font.Size := 10;
-  WizardForm.FinishedHeadingLabel.Font.Size := 16;
+  WizardForm.FinishedLabel.Font.Color := COLOR_SECONDARY;
+  
+  WizardForm.FinishedHeadingLabel.Font.Name := 'Segoe UI';
+  WizardForm.FinishedHeadingLabel.Font.Size := 18;
   WizardForm.FinishedHeadingLabel.Font.Style := [fsBold];
+  WizardForm.FinishedHeadingLabel.Font.Color := COLOR_SUCCESS;
+  
+  // Directory page styling
+  WizardForm.DirEdit.Font.Name := 'Segoe UI';
+  WizardForm.DirEdit.Font.Size := 9;
+  
+  // Tasks page styling  
+  WizardForm.TasksList.Font.Name := 'Segoe UI';
+  WizardForm.TasksList.Font.Size := 9;
+  WizardForm.TasksList.Color := COLOR_BACKGROUND;
+  
+  // Style select directory page labels
+  WizardForm.SelectDirLabel.Font.Name := 'Segoe UI';
+  WizardForm.SelectDirLabel.Font.Size := 9;
+  WizardForm.SelectDirLabel.Font.Color := COLOR_SECONDARY;
+  
+  WizardForm.SelectDirBrowseLabel.Font.Name := 'Segoe UI';
+  WizardForm.SelectDirBrowseLabel.Font.Size := 9;
+  WizardForm.SelectDirBrowseLabel.Font.Color := COLOR_SECONDARY;
+  
+  // Style page headers
+  WizardForm.PageNameLabel.Font.Name := 'Segoe UI Semibold';
+  WizardForm.PageNameLabel.Font.Size := 12;
+  WizardForm.PageNameLabel.Font.Color := COLOR_DARK;
+  
+  WizardForm.PageDescriptionLabel.Font.Name := 'Segoe UI';
+  WizardForm.PageDescriptionLabel.Font.Size := 9;
+  WizardForm.PageDescriptionLabel.Font.Color := COLOR_SECONDARY;
+  
+  // Style ready memo
+  WizardForm.ReadyMemo.Font.Name := 'Consolas';
+  WizardForm.ReadyMemo.Font.Size := 9;
+  WizardForm.ReadyMemo.Color := $00F5F5F5;
 end;
 
 function InitializeSetup(): Boolean;
-var
-  ResultCode: Integer;
 begin
   Result := True;
-  
-  // Check if app is already running
-  if Exec('tasklist', '/FI "IMAGENAME eq PDFScreenshotTool.exe" /NH', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
-  begin
-    // Note: This is a simple check, the mutex in the app handles the real single-instance logic
+  // The mutex in the app handles single-instance logic
+end;
+
+procedure CurPageChanged(CurPageID: Integer);
+begin
+  // Customize button text based on page
+  case CurPageID of
+    wpWelcome:
+      WizardForm.NextButton.Caption := 'Get Started →';
+    wpSelectDir:
+      WizardForm.NextButton.Caption := 'Next →';
+    wpSelectTasks:
+      WizardForm.NextButton.Caption := 'Install →';
+    wpFinished:
+      WizardForm.NextButton.Caption := 'Finish';
+  else
+    WizardForm.NextButton.Caption := 'Next →';
   end;
 end;
 
@@ -123,6 +181,6 @@ procedure CurStepChanged(CurStep: TSetupStep);
 begin
   if CurStep = ssPostInstall then
   begin
-    // Post-installation tasks can go here
+    // Post-installation tasks
   end;
 end;
