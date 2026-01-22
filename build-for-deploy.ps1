@@ -16,6 +16,18 @@ New-Item -ItemType Directory -Path "$publicDir/assets" | Out-Null
 Write-Host "`n[1/4] Copying website files..." -ForegroundColor Yellow
 Copy-Item "index.html" "$publicDir/"
 Copy-Item "landing-page.html" "$publicDir/"
+if (Test-Path "sitemap.xml") {
+    Copy-Item "sitemap.xml" "$publicDir/"
+    Write-Host "  - Copied sitemap.xml" -ForegroundColor Green
+}
+if (Test-Path "robots.txt") {
+    Copy-Item "robots.txt" "$publicDir/"
+    Write-Host "  - Copied robots.txt" -ForegroundColor Green
+}
+if (Test-Path "privacy.html") {
+    Copy-Item "privacy.html" "$publicDir/"
+    Write-Host "  - Copied privacy.html" -ForegroundColor Green
+}
 
 Write-Host "[2/4] Copying assets..." -ForegroundColor Yellow
 if (Test-Path "assets/icon.ico") {
