@@ -4,21 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PDF Screenshot Tool - Automatic PDF Page Capture</title>
-    <meta name="description" content="Automatically capture screenshots of every PDF page as you navigate in Adobe Acrobat. Perfect for compliance, documentation, and audit trails. Free Windows app.">
-    <meta name="keywords" content="PDF screenshot, Adobe Acrobat, automatic capture, page capture, compliance tool, audit trail, document capture">
+    <meta name="description" content="Automatically capture screenshots of every PDF page as you navigate in Adobe Acrobat. Fixed scrolling installation window, funnier setup experience, AI duplicate detection. Perfect for compliance, documentation, and audit trails. Free Windows app.">
+    <meta name="keywords" content="PDF screenshot, Adobe Acrobat, automatic capture, page capture, compliance tool, audit trail, document capture, PDF automation, screenshot tool, Windows utility, free PDF tool">
     <meta name="author" content="Daniel Raphael">
     
     <!-- Open Graph / Social Media -->
     <meta property="og:type" content="website">
     <meta property="og:title" content="PDF Screenshot Tool - Automatic Page Capture for Adobe Acrobat">
-    <meta property="og:description" content="Automatically capture screenshots of every PDF page as you navigate. Perfect for compliance and audit trails.">
+    <meta property="og:description" content="Automatically capture screenshots of every PDF page as you navigate. Fixed scrolling installation, AI duplicate detection, and funnier setup experience. Perfect for compliance and audit trails.">
     <meta property="og:image" content="https://pdfscreenshottool.com/assets/og-image.png">
     <meta property="og:url" content="https://pdfscreenshottool.com">
     
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="PDF Screenshot Tool">
-    <meta name="twitter:description" content="Automatic PDF page capture for Adobe Acrobat">
+    <meta name="twitter:description" content="Automatic PDF page capture for Adobe Acrobat. Fixed scrolling installation, AI duplicate detection, and improved user experience. Free Windows app.">
     
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="assets/icon.ico">
@@ -36,8 +36,16 @@
             "price": "0",
             "priceCurrency": "USD"
         },
-        "description": "Automatically capture screenshots of every PDF page as you navigate in Adobe Acrobat.",
+        "description": "Automatically capture screenshots of every PDF page as you navigate in Adobe Acrobat. Features AI-powered duplicate detection, improved installation experience with scrolling support, and funnier welcome text. Perfect for compliance, documentation, and audit trails.",
         "softwareVersion": "2.1.0",
+        "featureList": [
+            "Automatic PDF page capture",
+            "AI-powered duplicate detection",
+            "Scrollable installation window",
+            "Background system tray operation",
+            "Organized file management",
+            "Keyboard shortcuts support"
+        ],
         "author": {
             "@type": "Person",
             "name": "Daniel Raphael"
@@ -1094,6 +1102,103 @@
         .shortcut-desc {
             font-size: 0.95rem;
             color: var(--text-secondary);
+        }
+
+        /* Comparison Table */
+        .comparison-section {
+            background: var(--bg-warm);
+        }
+
+        .comparison-table-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            overflow-x: auto;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--bg-card);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--shadow-medium);
+        }
+
+        .comparison-table thead {
+            background: var(--gradient-fire);
+            color: white;
+        }
+
+        .comparison-table th {
+            padding: 20px;
+            text-align: left;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .comparison-table th:first-child {
+            width: 30%;
+        }
+
+        .comparison-table tbody tr {
+            border-bottom: 1px solid var(--bg-soft);
+            transition: background 0.2s;
+        }
+
+        .comparison-table tbody tr:hover {
+            background: var(--bg-soft);
+        }
+
+        .comparison-table tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        .comparison-table td {
+            padding: 18px 20px;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .comparison-table td:first-child {
+            font-weight: 600;
+            color: var(--ink);
+        }
+
+        .comparison-table td:nth-child(2) {
+            color: var(--text-secondary);
+        }
+
+        .comparison-table td:nth-child(3) {
+            color: var(--deep-teal);
+            font-weight: 500;
+        }
+
+        .comparison-cta {
+            max-width: 800px;
+            margin: 40px auto 0;
+            padding: 24px;
+            background: var(--bg-card);
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .comparison-cta p {
+            color: var(--text-primary);
+            font-size: 1.05rem;
+            margin: 0;
+        }
+
+        @media (max-width: 768px) {
+            .comparison-table {
+                font-size: 0.85rem;
+            }
+
+            .comparison-table th,
+            .comparison-table td {
+                padding: 12px 10px;
+            }
         }
 
         /* Use Cases */
@@ -2525,7 +2630,7 @@
                     </div>
                     PDF Screenshot Tool
                 </a>
-                <nav>
+                <nav aria-label="Main navigation">
                     <ul class="nav-links">
                         <li><a href="#features">Features</a></li>
                         <li><a href="#use-cases">Use Cases</a></li>
@@ -2543,7 +2648,7 @@
         </div>
     </header>
 
-    <nav class="mobile-nav" id="mobileNav">
+    <nav class="mobile-nav" id="mobileNav" aria-label="Mobile navigation">
         <ul>
             <li><a href="#features" class="mobile-nav-link">Features</a></li>
             <li><a href="#use-cases" class="mobile-nav-link">Use Cases</a></li>
@@ -2560,7 +2665,7 @@
                 <div class="hero-content">
                     <div class="badge">
                         <span class="badge-dot"></span>
-                        v2.1.0 • Now with AI-Powered Duplicate Detection 🧠
+                        v2.1.0 • Fixed Installation Scrolling + Funnier Setup Experience 🎉
                     </div>
                     <h1>Stop Taking <span class="gradient-text">Manual Screenshots</span> Like It's 1999</h1>
                     <p class="hero-subtitle">Your PDF pages capture themselves while you casually scroll through Adobe Acrobat. It's like having a tiny, <strong>obsessive assistant</strong> who never takes a coffee break.</p>
@@ -2571,11 +2676,11 @@
                     </div>
                     
                     <div class="cta-group">
-                        <a href="PDFScreenshotTool.exe" class="btn btn-primary" download>
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        <a href="PDFScreenshotTool.exe" class="btn btn-primary" download aria-label="Download PDF Screenshot Tool for Windows">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                             Download Now — It's Free
                         </a>
-                        <a href="#features" class="btn btn-secondary">
+                        <a href="#features" class="btn btn-secondary" aria-label="View features and capabilities">
                             See What It Does
                         </a>
                     </div>
@@ -2809,6 +2914,11 @@
                                 <td class="cross-icon">Questionable ❌</td>
                                 <td class="check-icon">Intact ✓</td>
                             </tr>
+                            <tr>
+                                <td>Installation experience</td>
+                                <td class="cross-icon">Boring setup screens ❌</td>
+                                <td class="check-icon">Funnier text + working scroll! ✓</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -2960,6 +3070,13 @@
                                         <li class="install-step">
                                             <div class="install-step-num">3</div>
                                             <div class="install-step-content">
+                                                <h4>Welcome Screen & Setup</h4>
+                                                <p>On first launch, you'll see our welcome screen with all the setup options. <strong>Everything is scrollable now</strong> — so you can see all the instructions and settings! Configure your save folder, choose your options, and hit "Let's Do This!"</p>
+                                            </div>
+                                        </li>
+                                        <li class="install-step">
+                                            <div class="install-step-num">4</div>
+                                            <div class="install-step-content">
                                                 <h4>Launch & Chill</h4>
                                                 <p>The app starts minimized to your system tray. Look for our icon near your clock — right-click it to see the menu.</p>
                                             </div>
@@ -2968,7 +3085,7 @@
 
                                     <div class="quick-tip">
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                                        <p><strong>Pro tip:</strong> Want it to start automatically with Windows? Check "Start with Windows" in the settings. Future you will thank you.</p>
+                                        <p><strong>Pro tip:</strong> Want it to start automatically with Windows? Check "Start with Windows" in the settings. Future you will thank you. Also, the welcome screen now has funnier text — enjoy the read! 😄</p>
                                     </div>
                                 </div>
                                 <div class="panel-visual">
@@ -3568,6 +3685,14 @@
                             <li>
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
                                 <span><span class="feature-tag improved">Improved</span>First-run tutorial (less confusing now)</span>
+                            </li>
+                            <li>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                                <span><span class="feature-tag fixed">Fixed</span>Installation window scrolling (you can now see everything!)</span>
+                            </li>
+                            <li>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                                <span><span class="feature-tag improved">Improved</span>Welcome screen with funnier, more engaging text</span>
                             </li>
                         </ul>
                     </div>
