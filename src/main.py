@@ -30,7 +30,7 @@ import json
 import imagehash
 
 # Application version - Update this, version_info.txt, and installer.iss together
-APP_VERSION = "2.1.0"
+APP_VERSION = "2.2.0"
 GITHUB_REPO = "draphael123/adobe-reader"
 UPDATE_CHECK_URL = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
 DOWNLOAD_PAGE_URL = f"https://github.com/{GITHUB_REPO}/releases/latest"
@@ -118,13 +118,23 @@ if PORTABLE_FLAG.exists():
     LOG_FILE = CONFIG_DIR / 'app.log'
     STATS_FILE = CONFIG_DIR / 'stats.json'
 
-# Setup logging
+# Setup logging with rotation
 CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+
+# Rotate old log files (keep last 5, max 10MB each)
+from logging.handlers import RotatingFileHandler
+log_handler = RotatingFileHandler(
+    LOG_FILE, 
+    maxBytes=10*1024*1024,  # 10MB
+    backupCount=5,
+    encoding='utf-8'
+)
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler(LOG_FILE, encoding='utf-8'),
+        log_handler,
         logging.StreamHandler()
     ]
 )
@@ -371,10 +381,73 @@ class Config:
             if CONFIG_FILE.exists():
                 with open(CONFIG_FILE, 'r') as f:
                     saved_config = json.load(f)
+                    # Migrate config if needed
+                    saved_config = self._migrate_config(saved_config)
+                    # Validate and sanitize config
+                    saved_config = self._validate_config(saved_config)
                     self.config.update(saved_config)
             logger.info("Configuration loaded")
-        except Exception as e:
+        except (json.JSONDecodeError, IOError, OSError) as e:
             logger.error(f"Error loading config: {e}")
+            # Create backup of corrupted config
+            try:
+                backup_path = CONFIG_FILE.with_suffix('.json.bak')
+                if CONFIG_FILE.exists():
+                    shutil.copy2(CONFIG_FILE, backup_path)
+                    logger.info(f"Backed up corrupted config to {backup_path}")
+            except Exception:
+                pass
+    
+    def _migrate_config(self, config):
+        """Migrate configuration from older versions."""
+        # Add version tracking
+        if 'config_version' not in config:
+            config['config_version'] = '2.0.0'
+        
+        # Migrate from v2.0.0 to v2.1.0
+        if config.get('config_version', '2.0.0') < '2.1.0':
+            # Add any new default values
+            if 'duplicate_hash_size' not in config:
+                config['duplicate_hash_size'] = DEFAULT_CONFIG.get('duplicate_hash_size', 16)
+            config['config_version'] = '2.1.0'
+        
+        return config
+    
+    def _validate_config(self, config):
+        """Validate and sanitize configuration values."""
+        validated = {}
+        
+        for key, value in config.items():
+            default_value = DEFAULT_CONFIG.get(key)
+            
+            # Skip unknown keys
+            if default_value is None:
+                logger.warning(f"Unknown config key: {key}, skipping")
+                continue
+            
+            # Type validation
+            if type(value) != type(default_value):
+                logger.warning(f"Invalid type for {key}: expected {type(default_value).__name__}, got {type(value).__name__}. Using default.")
+                validated[key] = default_value
+                continue
+            
+            # Range validation for numeric values
+            if isinstance(value, (int, float)):
+                if key == 'capture_delay' and (value < 0.1 or value > 5.0):
+                    logger.warning(f"capture_delay out of range, clamping to 0.1-5.0")
+                    validated[key] = max(0.1, min(5.0, value))
+                elif key == 'jpeg_quality' and (value < 1 or value > 100):
+                    logger.warning(f"jpeg_quality out of range, clamping to 1-100")
+                    validated[key] = max(1, min(100, value))
+                elif key == 'duplicate_similarity_threshold' and (value < 0 or value > 64):
+                    logger.warning(f"duplicate_similarity_threshold out of range, clamping to 0-64")
+                    validated[key] = max(0, min(64, value))
+                else:
+                    validated[key] = value
+            else:
+                validated[key] = value
+        
+        return validated
     
     def save(self):
         """Save configuration to file."""
@@ -411,7 +484,8 @@ class UpdateChecker:
             v = version_str.strip().lstrip('v')
             parts = v.split('.')
             return tuple(int(p) for p in parts[:3])
-        except:
+        except (ValueError, TypeError, AttributeError) as e:
+            logger.debug(f"Error parsing version string: {e}")
             return (0, 0, 0)
     
     def is_newer_version(self, latest, current):
@@ -431,8 +505,9 @@ class UpdateChecker:
             last_check_time = datetime.fromisoformat(last_check)
             hours_since = (datetime.now() - last_check_time).total_seconds() / 3600
             return hours_since >= self.config.get('update_check_interval')
-        except:
-            return True
+        except (ValueError, TypeError, AttributeError) as e:
+            logger.debug(f"Error comparing versions: {e}")
+            return True  # Default to allowing update if comparison fails
     
     def check_for_updates(self, force=False, callback=None):
         """Check GitHub releases for updates. Runs in background thread."""
@@ -1065,7 +1140,9 @@ class AcrobatMonitor:
         self.last_capture_time = 0
         self.last_window_title = ""
         self.screenshot_count = 0
-        self.captured_page_hashes = {}  # Dict of {doc_name: set(hashes)} for duplicate detection
+        self.captured_page_hashes = {}  # Dict of {doc_name: list(hashes)} for duplicate detection
+        self.max_hashes_per_document = 1000  # Limit hashes per document to prevent memory issues
+        self.current_document = None  # Track current document for cleanup
         self.pending_capture = None  # Track pending capture timer
         self.capture_lock = threading.Lock()  # Thread safety
         self.recent_captures = []  # Store recent capture paths
@@ -1077,58 +1154,94 @@ class AcrobatMonitor:
         # Manual hotkey tracking
         self.current_keys = set()
         
+        # Health monitoring
+        self.last_health_check = time.time()
+        self.capture_errors = 0
+        self.max_consecutive_errors = 10
+        
+    def _show_error_message(self, title, message):
+        """Show a user-friendly error message dialog."""
+        try:
+            import tkinter as tk
+            from tkinter import messagebox
+            root = tk.Tk()
+            root.withdraw()
+            root.attributes('-topmost', True)
+            messagebox.showerror(title, message, parent=root)
+            root.destroy()
+        except Exception as e:
+            logger.error(f"Failed to show error dialog: {e}")
+            # Fallback to console
+            print(f"ERROR: {title}\n{message}")
+        
     def is_acrobat_active(self):
         """Check if Adobe Acrobat is the active window WITH a PDF open."""
         try:
             active_window = gw.getActiveWindow()
-            if active_window:
-                title = active_window.title
-                
-                # Adobe Acrobat window titles follow the pattern: "Document Name - Adobe Acrobat [variant]"
-                # We need to check that the title ENDS with an Adobe identifier to avoid false positives
-                # (e.g., websites with "Adobe Acrobat" in the title)
-                
-                # Check if title ends with an Adobe identifier (the real Acrobat pattern)
-                adobe_suffixes = [
-                    ' - Adobe Acrobat Reader DC',
-                    ' - Adobe Acrobat Reader',
-                    ' - Adobe Acrobat Pro DC', 
-                    ' - Adobe Acrobat Pro',
-                    ' - Adobe Acrobat DC',
-                    ' - Adobe Acrobat',
-                    ' - Acrobat Reader DC',
-                    ' - Acrobat Reader',
-                ]
-                
-                is_acrobat = any(title.endswith(suffix) for suffix in adobe_suffixes)
-                
-                # Also check for exact matches (app without document open)
-                just_app_names = ['Adobe Acrobat Reader', 'Adobe Acrobat', 'Adobe Acrobat Reader DC', 
-                                  'Adobe Acrobat DC', 'Adobe Acrobat Pro DC', 'Adobe Acrobat Pro',
-                                  'Acrobat Reader DC', 'Acrobat Reader']
-                
-                if title.strip() in just_app_names:
-                    # App is open but no document - still counts as Acrobat being active
-                    # but we won't capture (handled below)
-                    is_acrobat = True
-                
-                if not is_acrobat:
-                    return False, "", None
-                
-                # Check if an actual PDF is open (not just the app home screen)
-                home_screens = ['Home', 'Home - Adobe Acrobat Reader DC', 'Home - Adobe Acrobat DC',
-                                'Home - Adobe Acrobat Pro DC', 'Home - Adobe Acrobat Pro']
-                home_screens.extend(just_app_names)
-                
-                if title.strip() in home_screens:
-                    # No document open, just the app home screen
-                    return False, "", None
-                
-                # If we get here, Acrobat is open with a document
-                return True, title, active_window
-        except Exception:
-            pass
-        return False, "", None
+            if not active_window:
+                return False, "", None
+            
+            # Validate window has required attributes
+            if not hasattr(active_window, 'title') or not hasattr(active_window, 'left'):
+                return False, "", None
+            
+            title = active_window.title
+            
+            # Adobe Acrobat window titles follow the pattern: "Document Name - Adobe Acrobat [variant]"
+            # We need to check that the title ENDS with an Adobe identifier to avoid false positives
+            # (e.g., websites with "Adobe Acrobat" in the title)
+            
+            # Check if title ends with an Adobe identifier (the real Acrobat pattern)
+            adobe_suffixes = [
+                ' - Adobe Acrobat Reader DC',
+                ' - Adobe Acrobat Reader',
+                ' - Adobe Acrobat Pro DC', 
+                ' - Adobe Acrobat Pro',
+                ' - Adobe Acrobat DC',
+                ' - Adobe Acrobat',
+                ' - Acrobat Reader DC',
+                ' - Acrobat Reader',
+            ]
+            
+            is_acrobat = any(title.endswith(suffix) for suffix in adobe_suffixes)
+            
+            # Also check for exact matches (app without document open)
+            just_app_names = ['Adobe Acrobat Reader', 'Adobe Acrobat', 'Adobe Acrobat Reader DC', 
+                              'Adobe Acrobat DC', 'Adobe Acrobat Pro DC', 'Adobe Acrobat Pro',
+                              'Acrobat Reader DC', 'Acrobat Reader']
+            
+            if title.strip() in just_app_names:
+                # App is open but no document - still counts as Acrobat being active
+                # but we won't capture (handled below)
+                is_acrobat = True
+            
+            if not is_acrobat:
+                return False, "", None
+            
+            # Check if an actual PDF is open (not just the app home screen)
+            home_screens = ['Home', 'Home - Adobe Acrobat Reader DC', 'Home - Adobe Acrobat DC',
+                            'Home - Adobe Acrobat Pro DC', 'Home - Adobe Acrobat Pro']
+            home_screens.extend(just_app_names)
+            
+            if title.strip() in home_screens:
+                # No document open, just the app home screen
+                return False, "", None
+            
+            # Validate window dimensions are reasonable
+            try:
+                if hasattr(active_window, 'width') and hasattr(active_window, 'height'):
+                    if active_window.width <= 0 or active_window.height <= 0:
+                        logger.debug("Invalid window dimensions detected")
+                        return False, "", None
+            except (AttributeError, TypeError) as e:
+                logger.debug(f"Error checking window dimensions: {e}")
+                # Continue anyway, might still be valid
+            
+            # If we get here, Acrobat is open with a document
+            return True, title, active_window
+        except (AttributeError, TypeError, Exception) as e:
+            logger.debug(f"Error checking active window: {e}")
+            return False, "", None
     
     def check_filters(self, window_title):
         """Check if the document passes whitelist/blacklist filters."""
@@ -1228,7 +1341,38 @@ class AcrobatMonitor:
         """
         if doc_name not in self.captured_page_hashes:
             self.captured_page_hashes[doc_name] = []
-        self.captured_page_hashes[doc_name].append(current_hash)
+        
+        # Limit hashes per document to prevent memory issues (LRU: keep most recent)
+        hash_list = self.captured_page_hashes[doc_name]
+        if len(hash_list) >= self.max_hashes_per_document:
+            # Remove oldest hash (FIFO)
+            hash_list.pop(0)
+        
+        hash_list.append(current_hash)
+    
+    def _cleanup_document_hashes(self, doc_name):
+        """Clean up hashes when a document is closed or changed."""
+        if doc_name and doc_name in self.captured_page_hashes:
+            # Keep only last 100 hashes for closed documents (in case user reopens)
+            if len(self.captured_page_hashes[doc_name]) > 100:
+                self.captured_page_hashes[doc_name] = self.captured_page_hashes[doc_name][-100:]
+            logger.debug(f"Cleaned up hashes for document: {doc_name}")
+    
+    def cleanup_old_hashes(self, doc_name=None):
+        """Clean up old hashes for a document or all documents.
+        
+        Args:
+            doc_name: Document name to clean, or None to clean all
+        """
+        if doc_name:
+            if doc_name in self.captured_page_hashes:
+                # Keep only last 500 hashes
+                self.captured_page_hashes[doc_name] = self.captured_page_hashes[doc_name][-500:]
+        else:
+            # Clean all documents
+            for doc in list(self.captured_page_hashes.keys()):
+                if len(self.captured_page_hashes[doc]) > 500:
+                    self.captured_page_hashes[doc] = self.captured_page_hashes[doc][-500:]
     
     def get_document_area(self, window):
         """Try to estimate the document area within the Acrobat window."""
@@ -1264,7 +1408,18 @@ class AcrobatMonitor:
         if not is_active or not window:
             if manual:
                 logger.warning("Manual capture failed: Adobe Acrobat not active")
+            # Document closed - cleanup old hashes
+            if self.current_document and self.current_document != window_title:
+                self._cleanup_document_hashes(self.current_document)
+                self.current_document = None
             return None
+        
+        # Detect document change
+        doc_name = self.get_document_name(window_title)
+        if self.current_document and self.current_document != doc_name:
+            # Document changed - cleanup old document's hashes
+            self._cleanup_document_hashes(self.current_document)
+        self.current_document = doc_name
         
         # Check filters
         if not manual and not self.check_filters(window_title):
@@ -1439,7 +1594,22 @@ class AcrobatMonitor:
                         current_count = self.folder_file_counts.get(folder_key, 0)
                     self.folder_file_counts[folder_key] = current_count + 1
                 
-                save_folder.mkdir(parents=True, exist_ok=True)
+                # Create save folder with error handling
+                try:
+                    save_folder.mkdir(parents=True, exist_ok=True)
+                except (OSError, PermissionError) as e:
+                    error_msg = (
+                        f"Cannot create save folder:\n{save_folder}\n\n"
+                        f"Error: {str(e)}\n\n"
+                        "Please check:\n"
+                        "- Folder permissions\n"
+                        "- Disk space\n"
+                        "- Antivirus settings"
+                    )
+                    logger.error(f"Failed to create save folder: {e}")
+                    if manual:
+                        self._show_error_message("Folder Creation Failed", error_msg)
+                    return None
                 
                 # Generate filename using template
                 template = self.config.get('filename_template')
@@ -1450,21 +1620,66 @@ class AcrobatMonitor:
                 # Update document capture count
                 self.document_capture_counts[doc_name] = self.document_capture_counts.get(doc_name, 0) + 1
                 
-                # Determine format and save
+                # Determine format and save with retry logic
                 img_format = self.config.get('image_format')
                 
                 if img_format == 'jpeg':
                     filename = f"{base_filename}.jpg"
                     filepath = save_folder / filename
-                    img.save(str(filepath), "JPEG", quality=self.config.get('jpeg_quality'))
                 elif img_format == 'webp':
                     filename = f"{base_filename}.webp"
                     filepath = save_folder / filename
-                    img.save(str(filepath), "WEBP", quality=self.config.get('jpeg_quality'))
                 else:  # png
                     filename = f"{base_filename}.png"
                     filepath = save_folder / filename
-                    img.save(str(filepath), "PNG")
+                
+                # Save with retry logic for file I/O errors
+                max_retries = 3
+                saved = False
+                last_error = None
+                
+                for attempt in range(max_retries):
+                    try:
+                        if img_format == 'jpeg':
+                            img.save(str(filepath), "JPEG", quality=self.config.get('jpeg_quality'))
+                        elif img_format == 'webp':
+                            img.save(str(filepath), "WEBP", quality=self.config.get('jpeg_quality'))
+                        else:  # png
+                            img.save(str(filepath), "PNG")
+                        saved = True
+                        break
+                    except (IOError, OSError, PermissionError) as e:
+                        last_error = e
+                        self.capture_errors += 1
+                        if attempt < max_retries - 1:
+                            time.sleep(0.1 * (attempt + 1))  # Exponential backoff
+                            logger.warning(f"Save attempt {attempt + 1} failed, retrying: {e}")
+                        else:
+                            logger.error(f"Failed to save screenshot after {max_retries} attempts: {e}")
+                            # Show user-friendly error
+                            if manual:
+                                self._show_error_message(
+                                    "Failed to Save Screenshot",
+                                    f"Could not save screenshot to:\n{filepath}\n\n"
+                                    f"Error: {str(e)}\n\n"
+                                    "Please check:\n"
+                                    "- Disk space is available\n"
+                                    "- Folder permissions are correct\n"
+                                    "- Antivirus isn't blocking the save"
+                                )
+                            # Health check: too many errors
+                            if self.capture_errors >= self.max_consecutive_errors:
+                                logger.error(f"Too many consecutive capture errors ({self.capture_errors}), pausing captures")
+                                self.paused = True
+                                if self.on_status_change:
+                                    self.on_status_change("error")
+                            return None
+                
+                if not saved:
+                    return None
+                
+                # Reset error counter on success
+                self.capture_errors = 0
                 
                 logger.info(f"Screenshot saved: {filepath}")
                 
@@ -1639,20 +1854,55 @@ class AcrobatMonitor:
     
     def start(self):
         """Start monitoring keyboard and mouse."""
-        self.keyboard_listener = keyboard.Listener(
-            on_press=self.on_key_press,
-            on_release=self.on_key_release
-        )
-        self.keyboard_listener.start()
+        try:
+            self.keyboard_listener = keyboard.Listener(
+                on_press=self.on_key_press,
+                on_release=self.on_key_release
+            )
+            self.keyboard_listener.start()
+            
+            # Monitor mouse scroll and optionally clicks
+            self.mouse_listener = mouse.Listener(
+                on_scroll=self.on_scroll,
+                on_click=self.on_click
+            )
+            self.mouse_listener.start()
+            
+            # Start health monitoring thread
+            self._start_health_monitor()
+            
+            logger.info("Monitoring started")
+        except Exception as e:
+            logger.error(f"Failed to start monitoring: {e}")
+            raise
+    
+    def _start_health_monitor(self):
+        """Start background health monitoring thread."""
+        def health_check():
+            while True:
+                time.sleep(60)  # Check every minute
+                try:
+                    current_time = time.time()
+                    # Reset error counter if no errors for 5 minutes
+                    if current_time - self.last_health_check > 300:
+                        if self.capture_errors > 0:
+                            logger.info(f"Resetting error counter after 5 minutes of stability")
+                            self.capture_errors = 0
+                            if self.paused and self.capture_errors == 0:
+                                self.paused = False
+                                if self.on_status_change:
+                                    self.on_status_change("enabled")
+                        self.last_health_check = current_time
+                    
+                    # Periodic hash cleanup
+                    if len(self.captured_page_hashes) > 10:
+                        # Clean up hashes for documents not seen in a while
+                        self.cleanup_old_hashes()
+                except Exception as e:
+                    logger.debug(f"Health check error: {e}")
         
-        # Monitor mouse scroll and optionally clicks
-        self.mouse_listener = mouse.Listener(
-            on_scroll=self.on_scroll,
-            on_click=self.on_click
-        )
-        self.mouse_listener.start()
-        
-        logger.info("Monitoring started")
+        health_thread = threading.Thread(target=health_check, daemon=True)
+        health_thread.start()
     
     def stop(self):
         """Stop monitoring."""
@@ -2231,17 +2481,40 @@ class BatchActionsWindow:
             return
         
         try:
-            self.status_var.set("Exporting...")
-            self.window.update()
+            # Create progress window
+            progress_window = tk.Toplevel(self.window)
+            progress_window.title("Exporting...")
+            progress_window.geometry("400x120")
+            progress_window.resizable(False, False)
+            progress_window.transient(self.window)
+            progress_window.grab_set()
+            
+            progress_label = ttk.Label(progress_window, text=f"Exporting {len(images)} screenshots...")
+            progress_label.pack(pady=10)
+            
+            progress_var = tk.DoubleVar()
+            progress_bar = ttk.Progressbar(progress_window, variable=progress_var, maximum=len(images), length=350)
+            progress_bar.pack(pady=10)
+            
+            status_label = ttk.Label(progress_window, text="")
+            status_label.pack(pady=5)
+            
+            progress_window.update()
             
             with zipfile.ZipFile(save_path, 'w', zipfile.ZIP_DEFLATED) as zf:
-                for img in images:
+                for i, img in enumerate(images, 1):
                     arcname = img.relative_to(folder)
                     zf.write(img, arcname)
+                    progress_var.set(i)
+                    status_label.config(text=f"Processing {i}/{len(images)}: {img.name[:40]}...")
+                    progress_window.update()
             
+            progress_window.destroy()
             self.status_var.set(f"✓ Exported {len(images)} files to ZIP")
             messagebox.showinfo("Success", f"Exported {len(images)} screenshots to:\n{save_path}")
         except Exception as e:
+            if 'progress_window' in locals():
+                progress_window.destroy()
             self.status_var.set(f"Error: {e}")
             messagebox.showerror("Error", f"Export failed: {e}")
     
@@ -2271,23 +2544,48 @@ class BatchActionsWindow:
             return
         
         try:
-            self.status_var.set("Creating PDF...")
-            self.window.update()
+            # Create progress window
+            progress_window = tk.Toplevel(self.window)
+            progress_window.title("Creating PDF...")
+            progress_window.geometry("400x120")
+            progress_window.resizable(False, False)
+            progress_window.transient(self.window)
+            progress_window.grab_set()
+            
+            progress_label = ttk.Label(progress_window, text=f"Converting {len(images)} screenshots to PDF...")
+            progress_label.pack(pady=10)
+            
+            progress_var = tk.DoubleVar()
+            progress_bar = ttk.Progressbar(progress_window, variable=progress_var, maximum=len(images), length=350)
+            progress_bar.pack(pady=10)
+            
+            status_label = ttk.Label(progress_window, text="")
+            status_label.pack(pady=5)
+            
+            progress_window.update()
             
             # Convert images to PDF
             img_list = []
-            for img_path in images:
+            for i, img_path in enumerate(images, 1):
                 img = Image.open(img_path)
                 if img.mode == 'RGBA':
                     img = img.convert('RGB')
                 img_list.append(img)
+                progress_var.set(i)
+                status_label.config(text=f"Processing {i}/{len(images)}: {img_path.name[:40]}...")
+                progress_window.update()
             
             if img_list:
+                status_label.config(text="Saving PDF...")
+                progress_window.update()
                 img_list[0].save(save_path, save_all=True, append_images=img_list[1:])
             
+            progress_window.destroy()
             self.status_var.set(f"✓ Exported {len(images)} images to PDF")
             messagebox.showinfo("Success", f"Exported {len(images)} screenshots to:\n{save_path}")
         except Exception as e:
+            if 'progress_window' in locals():
+                progress_window.destroy()
             self.status_var.set(f"Error: {e}")
             messagebox.showerror("Error", f"Export failed: {e}")
     

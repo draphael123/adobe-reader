@@ -4,21 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PDF Screenshot Tool - Automatic PDF Page Capture</title>
-    <meta name="description" content="Automatically capture screenshots of every PDF page as you navigate in Adobe Acrobat. Perfect for compliance, documentation, and audit trails. Free Windows app.">
+    <meta name="description" content="Automatically capture screenshots of every PDF page as you navigate in Adobe Acrobat. Fixed scrolling installation window, funnier setup experience, AI duplicate detection. Perfect for compliance, documentation, and audit trails. Free Windows app.">
     <meta name="keywords" content="PDF screenshot, Adobe Acrobat, automatic capture, page capture, compliance tool, audit trail, document capture">
     <meta name="author" content="Daniel Raphael">
     
     <!-- Open Graph / Social Media -->
     <meta property="og:type" content="website">
     <meta property="og:title" content="PDF Screenshot Tool - Automatic Page Capture for Adobe Acrobat">
-    <meta property="og:description" content="Automatically capture screenshots of every PDF page as you navigate. Perfect for compliance and audit trails.">
+    <meta property="og:description" content="Automatically capture screenshots of every PDF page as you navigate. Fixed scrolling installation, AI duplicate detection, and funnier setup experience. Perfect for compliance and audit trails.">
     <meta property="og:image" content="https://pdfscreenshottool.com/assets/og-image.png">
     <meta property="og:url" content="https://pdfscreenshottool.com">
     
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="PDF Screenshot Tool">
-    <meta name="twitter:description" content="Automatic PDF page capture for Adobe Acrobat">
+    <meta name="twitter:description" content="Automatic PDF page capture for Adobe Acrobat. Fixed scrolling installation, AI duplicate detection, and improved user experience. Free Windows app.">
     
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="assets/icon.ico">
@@ -36,8 +36,16 @@
             "price": "0",
             "priceCurrency": "USD"
         },
-        "description": "Automatically capture screenshots of every PDF page as you navigate in Adobe Acrobat.",
-        "softwareVersion": "2.1.0",
+        "description": "Automatically capture screenshots of every PDF page as you navigate in Adobe Acrobat. Features AI-powered duplicate detection, improved installation experience with scrolling support, and funnier welcome text. Perfect for compliance, documentation, and audit trails.",
+        "softwareVersion": "2.2.0",
+        "featureList": [
+            "Automatic PDF page capture",
+            "AI-powered duplicate detection",
+            "Scrollable installation window",
+            "Background system tray operation",
+            "Organized file management",
+            "Keyboard shortcuts support"
+        ],
         "author": {
             "@type": "Person",
             "name": "Daniel Raphael"
@@ -1094,6 +1102,90 @@
         .shortcut-desc {
             font-size: 0.95rem;
             color: var(--text-secondary);
+        }
+
+        /* What's New Section */
+        .whats-new-section {
+            background: linear-gradient(135deg, var(--mint-cream) 0%, var(--bg-main) 100%);
+        }
+
+        .whats-new-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .whats-new-card {
+            background: var(--bg-card);
+            border: 1px solid rgba(26, 43, 60, 0.06);
+            border-radius: 20px;
+            padding: 32px;
+            transition: all 0.3s;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .whats-new-card.highlight {
+            background: var(--gradient-fire);
+            color: white;
+            border: none;
+            box-shadow: var(--shadow-glow);
+        }
+
+        .whats-new-card.highlight h3,
+        .whats-new-card.highlight p {
+            color: white;
+        }
+
+        .whats-new-card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--shadow-medium);
+        }
+
+        .whats-new-card.highlight:hover {
+            box-shadow: var(--shadow-glow);
+            transform: translateY(-8px) scale(1.02);
+        }
+
+        .whats-new-icon {
+            width: 64px;
+            height: 64px;
+            background: var(--bg-warm);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+
+        .whats-new-card.highlight .whats-new-icon {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .whats-new-card h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--ink);
+            margin-bottom: 12px;
+        }
+
+        .whats-new-card p {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            line-height: 1.65;
+        }
+
+        .whats-new-cta {
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .whats-new-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         /* Use Cases */
@@ -2525,7 +2617,7 @@
                     </div>
                     PDF Screenshot Tool
                 </a>
-                <nav>
+                <nav aria-label="Main navigation">
                     <ul class="nav-links">
                         <li><a href="#features">Features</a></li>
                         <li><a href="#use-cases">Use Cases</a></li>
@@ -2543,7 +2635,7 @@
         </div>
     </header>
 
-    <nav class="mobile-nav" id="mobileNav">
+    <nav class="mobile-nav" id="mobileNav" aria-label="Mobile navigation">
         <ul>
             <li><a href="#features" class="mobile-nav-link">Features</a></li>
             <li><a href="#use-cases" class="mobile-nav-link">Use Cases</a></li>
@@ -2560,7 +2652,7 @@
                 <div class="hero-content">
                     <div class="badge">
                         <span class="badge-dot"></span>
-                        v2.1.0 • Now with AI-Powered Duplicate Detection 🧠
+                        v2.2.0 • Major Stability & Performance Improvements 🚀
                     </div>
                     <h1>Stop Taking <span class="gradient-text">Manual Screenshots</span> Like It's 1999</h1>
                     <p class="hero-subtitle">Your PDF pages capture themselves while you casually scroll through Adobe Acrobat. It's like having a tiny, <strong>obsessive assistant</strong> who never takes a coffee break.</p>
@@ -2706,6 +2798,62 @@
             </div>
         </section>
 
+        <!-- What's New Section -->
+        <section class="whats-new-section" id="whats-new">
+            <div class="container">
+                <div class="section-header animate-on-scroll">
+                    <span class="section-label">Latest Updates</span>
+                    <h2>What's New in v2.2.0</h2>
+                    <p>Major stability, performance, and reliability improvements.</p>
+                </div>
+                <div class="whats-new-grid animate-on-scroll">
+                    <div class="whats-new-card highlight">
+                        <div class="whats-new-icon">💾</div>
+                        <h3>Memory Management</h3>
+                        <p>Improved hash storage with automatic cleanup to prevent memory issues during long sessions. Hashes are now limited per document with smart cleanup.</p>
+                    </div>
+                    <div class="whats-new-card highlight">
+                        <div class="whats-new-icon">🛡️</div>
+                        <h3>Better Error Handling</h3>
+                        <p>More robust error handling with specific exception types, retry logic for file operations, and user-friendly error messages with actionable solutions.</p>
+                    </div>
+                    <div class="whats-new-card">
+                        <div class="whats-new-icon">📋</div>
+                        <h3>Log File Rotation</h3>
+                        <p>Automatic log rotation prevents log files from growing indefinitely. Keeps last 5 log files, max 10MB each.</p>
+                    </div>
+                    <div class="whats-new-card">
+                        <div class="whats-new-icon">🖥️</div>
+                        <h3>Multi-Monitor Support</h3>
+                        <p>Improved window detection and screenshot capture for multi-monitor setups with better edge case handling.</p>
+                    </div>
+                    <div class="whats-new-card">
+                        <div class="whats-new-icon">⚙️</div>
+                        <h3>Settings Validation</h3>
+                        <p>Automatic validation and sanitization of configuration values prevents crashes from invalid settings.</p>
+                    </div>
+                    <div class="whats-new-card">
+                        <div class="whats-new-icon">🔄</div>
+                        <h3>Config Migration</h3>
+                        <p>Automatic configuration migration system ensures settings work correctly when upgrading between versions.</p>
+                    </div>
+                    <div class="whats-new-card">
+                        <div class="whats-new-icon">💚</div>
+                        <h3>Health Monitoring</h3>
+                        <p>Background health monitoring detects issues and automatically pauses captures if too many errors occur, with automatic recovery.</p>
+                    </div>
+                    <div class="whats-new-card">
+                        <div class="whats-new-icon">📊</div>
+                        <h3>Progress Feedback</h3>
+                        <p>Progress bars for batch operations (ZIP/PDF export) so you know what's happening during long operations.</p>
+                    </div>
+                </div>
+                <div class="whats-new-cta animate-on-scroll">
+                    <a href="#changelog" class="btn btn-secondary">View Full Changelog</a>
+                </div>
+            </div>
+        </section>
+
         <!-- Features Section -->
         <section class="features" id="features">
             <div class="container">
@@ -2808,6 +2956,11 @@
                                 <td>Your sanity</td>
                                 <td class="cross-icon">Questionable ❌</td>
                                 <td class="check-icon">Intact ✓</td>
+                            </tr>
+                            <tr>
+                                <td>Installation experience</td>
+                                <td class="cross-icon">Boring setup screens ❌</td>
+                                <td class="check-icon">Funnier text + working scroll! ✓</td>
                             </tr>
                         </tbody>
                     </table>
@@ -2960,6 +3113,13 @@
                                         <li class="install-step">
                                             <div class="install-step-num">3</div>
                                             <div class="install-step-content">
+                                                <h4>Welcome Screen & Setup</h4>
+                                                <p>On first launch, you'll see our welcome screen with all the setup options. <strong>Everything is scrollable now</strong> — so you can see all the instructions and settings! Configure your save folder, choose your options, and hit "Let's Do This!"</p>
+                                            </div>
+                                        </li>
+                                        <li class="install-step">
+                                            <div class="install-step-num">4</div>
+                                            <div class="install-step-content">
                                                 <h4>Launch & Chill</h4>
                                                 <p>The app starts minimized to your system tray. Look for our icon near your clock — right-click it to see the menu.</p>
                                             </div>
@@ -2968,7 +3128,7 @@
 
                                     <div class="quick-tip">
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                                        <p><strong>Pro tip:</strong> Want it to start automatically with Windows? Check "Start with Windows" in the settings. Future you will thank you.</p>
+                                        <p><strong>Pro tip:</strong> Want it to start automatically with Windows? Check "Start with Windows" in the settings. Future you will thank you. Also, the welcome screen now has funnier text — enjoy the read! 😄</p>
                                     </div>
                                 </div>
                                 <div class="panel-visual">
@@ -2987,7 +3147,7 @@
                                                     <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
                                                 </div>
                                                 <h4 style="font-size: 1.1rem; color: var(--ink); margin-bottom: 8px;">PDF Screenshot Tool</h4>
-                                                <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 24px;">Version 2.1.0 Setup</p>
+                                                <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 24px;">Version 2.2.0 Setup</p>
                                                 <div class="installer-progress">
                                                     <div class="progress-bar">
                                                         <div class="progress-fill"></div>
@@ -3569,6 +3729,14 @@
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
                                 <span><span class="feature-tag improved">Improved</span>First-run tutorial (less confusing now)</span>
                             </li>
+                            <li>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                                <span><span class="feature-tag fixed">Fixed</span>Installation window scrolling (you can now see everything!)</span>
+                            </li>
+                            <li>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                                <span><span class="feature-tag improved">Improved</span>Welcome screen with funnier, more engaging text</span>
+                            </li>
                         </ul>
                     </div>
 
@@ -3639,7 +3807,7 @@
                     <li><a href="#features">Features</a></li>
                     <li><a href="#faq">FAQ</a></li>
                     <li><a href="#changelog">Changelog</a></li>
-                    <li><a href="#privacy">Privacy</a></li>
+                    <li><a href="/privacy.html">Privacy</a></li>
                     <li><a href="https://github.com/draphael123/adobe-reader" target="_blank">GitHub</a></li>
                 </ul>
             </div>

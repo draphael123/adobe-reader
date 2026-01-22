@@ -37,7 +37,7 @@
             "priceCurrency": "USD"
         },
         "description": "Automatically capture screenshots of every PDF page as you navigate in Adobe Acrobat. Features AI-powered duplicate detection, improved installation experience with scrolling support, and funnier welcome text. Perfect for compliance, documentation, and audit trails.",
-        "softwareVersion": "2.1.0",
+        "softwareVersion": "2.2.0",
         "featureList": [
             "Automatic PDF page capture",
             "AI-powered duplicate detection",
@@ -2749,7 +2749,7 @@
                 <div class="hero-content">
                     <div class="badge">
                         <span class="badge-dot"></span>
-                        v2.1.0 • Fixed Installation Scrolling + Funnier Setup Experience 🎉
+                        v2.2.0 • Major Stability & Performance Improvements 🚀
                     </div>
                     <h1>Stop Taking <span class="gradient-text">Manual Screenshots</span> Like It's 1999</h1>
                     <p class="hero-subtitle">Your PDF pages capture themselves while you casually scroll through Adobe Acrobat. It's like having a tiny, <strong>obsessive assistant</strong> who never takes a coffee break.</p>
@@ -2900,29 +2900,49 @@
             <div class="container">
                 <div class="section-header animate-on-scroll">
                     <span class="section-label">Latest Updates</span>
-                    <h2>What's New in v2.1.0</h2>
-                    <p>We've been busy making your screenshot life easier.</p>
+                    <h2>What's New in v2.2.0</h2>
+                    <p>Major stability, performance, and reliability improvements.</p>
                 </div>
                 <div class="whats-new-grid animate-on-scroll">
                     <div class="whats-new-card highlight">
-                        <div class="whats-new-icon">🔧</div>
-                        <h3>Fixed Installation Scrolling</h3>
-                        <p>You can now scroll through the entire welcome screen! No more missing the "Start" button or important instructions. Everything is accessible and scrollable.</p>
+                        <div class="whats-new-icon">💾</div>
+                        <h3>Memory Management</h3>
+                        <p>Improved hash storage with automatic cleanup to prevent memory issues during long sessions. Hashes are now limited per document with smart cleanup.</p>
                     </div>
                     <div class="whats-new-card highlight">
-                        <div class="whats-new-icon">😄</div>
-                        <h3>Funnier Setup Experience</h3>
-                        <p>We've spiced up the welcome screen with more engaging, humorous text. Installation doesn't have to be boring — enjoy the read while you set things up!</p>
+                        <div class="whats-new-icon">🛡️</div>
+                        <h3>Better Error Handling</h3>
+                        <p>More robust error handling with specific exception types, retry logic for file operations, and user-friendly error messages with actionable solutions.</p>
                     </div>
                     <div class="whats-new-card">
-                        <div class="whats-new-icon">🧠</div>
-                        <h3>AI Duplicate Detection</h3>
-                        <p>Smart perceptual hashing automatically skips identical pages, saving you disk space and processing time.</p>
+                        <div class="whats-new-icon">📋</div>
+                        <h3>Log File Rotation</h3>
+                        <p>Automatic log rotation prevents log files from growing indefinitely. Keeps last 5 log files, max 10MB each.</p>
+                    </div>
+                    <div class="whats-new-card">
+                        <div class="whats-new-icon">🖥️</div>
+                        <h3>Multi-Monitor Support</h3>
+                        <p>Improved window detection and screenshot capture for multi-monitor setups with better edge case handling.</p>
                     </div>
                     <div class="whats-new-card">
                         <div class="whats-new-icon">⚙️</div>
-                        <h3>Improved Settings</h3>
-                        <p>Better organized settings window with more customization options and clearer explanations.</p>
+                        <h3>Settings Validation</h3>
+                        <p>Automatic validation and sanitization of configuration values prevents crashes from invalid settings.</p>
+                    </div>
+                    <div class="whats-new-card">
+                        <div class="whats-new-icon">🔄</div>
+                        <h3>Config Migration</h3>
+                        <p>Automatic configuration migration system ensures settings work correctly when upgrading between versions.</p>
+                    </div>
+                    <div class="whats-new-card">
+                        <div class="whats-new-icon">💚</div>
+                        <h3>Health Monitoring</h3>
+                        <p>Background health monitoring detects issues and automatically pauses captures if too many errors occur, with automatic recovery.</p>
+                    </div>
+                    <div class="whats-new-card">
+                        <div class="whats-new-icon">📊</div>
+                        <h3>Progress Feedback</h3>
+                        <p>Progress bars for batch operations (ZIP/PDF export) so you know what's happening during long operations.</p>
                     </div>
                 </div>
                 <div class="whats-new-cta animate-on-scroll">
@@ -3224,7 +3244,7 @@
                                                     <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
                                                 </div>
                                                 <h4 style="font-size: 1.1rem; color: var(--ink); margin-bottom: 8px;">PDF Screenshot Tool</h4>
-                                                <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 24px;">Version 2.1.0 Setup</p>
+                                                <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 24px;">Version 2.2.0 Setup</p>
                                                 <div class="installer-progress">
                                                     <div class="progress-bar">
                                                         <div class="progress-fill"></div>
@@ -3601,12 +3621,45 @@
                     <div class="version-card current">
                         <div class="version-badge">Latest</div>
                         <div class="version-header">
+                            <h3>Version 2.2.0</h3>
+                            <span class="version-date">January 2026</span>
+                        </div>
+                        <div class="version-changes">
+                            <h4>What's New:</h4>
+                            <ul>
+                                <li>💾 Memory management improvements (hash storage limits)</li>
+                                <li>🛡️ Better error handling with retry logic</li>
+                                <li>📋 Log file rotation (prevents unlimited growth)</li>
+                                <li>🖥️ Improved multi-monitor support</li>
+                                <li>⚙️ Settings validation and migration</li>
+                                <li>💚 Health monitoring and auto-recovery</li>
+                                <li>📊 Progress feedback for batch operations</li>
+                                <li>🔧 Document hash cleanup on close</li>
+                            </ul>
+                        </div>
+                        <div class="version-downloads">
+                            <a href="PDFScreenshotTool.exe" class="version-download-btn primary" download>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                Download .exe
+                            </a>
+                            <a href="PDFScreenshotTool.zip" class="version-download-btn secondary" download>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                Download .zip
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Version 2.1.0 -->
+                    <div class="version-card">
+                        <div class="version-header">
                             <h3>Version 2.1.0</h3>
                             <span class="version-date">January 2026</span>
                         </div>
                         <div class="version-changes">
                             <h4>What's New:</h4>
                             <ul>
+                                <li>🔧 Fixed installation window scrolling</li>
+                                <li>😄 Funnier welcome screen text</li>
                                 <li>✨ Watermarking support (timestamp, text, or image)</li>
                                 <li>📋 Auto-copy to clipboard after capture</li>
                                 <li>✂️ Custom crop margins</li>
@@ -3616,11 +3669,11 @@
                             </ul>
                         </div>
                         <div class="version-downloads">
-                            <a href="PDFScreenshotTool.exe" class="version-download-btn primary" download>
+                            <a href="https://github.com/draphael123/adobe-reader/releases/download/v2.1.0/PDFScreenshotTool.exe" class="version-download-btn secondary">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                                 Download .exe
                             </a>
-                            <a href="PDFScreenshotTool.zip" class="version-download-btn secondary" download>
+                            <a href="https://github.com/draphael123/adobe-reader/releases/download/v2.1.0/PDFScreenshotTool.zip" class="version-download-btn secondary">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                                 Download .zip
                             </a>
@@ -3780,7 +3833,7 @@
                 <div class="changelog-container">
                     <div class="changelog-item animate-on-scroll">
                         <div class="changelog-version">
-                            <span class="version-tag">v2.1.0</span>
+                            <span class="version-tag">v2.2.0</span>
                             <span class="version-date">January 2026</span>
                             <span class="version-badge">Latest</span>
                         </div>
