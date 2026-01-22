@@ -16,7 +16,7 @@ AppVersion={#MyAppVersion}
 AppVerName={#MyAppName} {#MyAppVersion}
 AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
-AppSupportURL={#MyAppURL}/support
+AppSupportURL=https://github.com/draphael123/adobe-reader/issues
 AppUpdatesURL={#MyAppURL}/download
 AppContact={#MyAppContact}
 AppCopyright={#MyAppCopyright}
@@ -55,8 +55,8 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Messages]
 WelcomeLabel1=Welcome to PDF Screenshot Tool!
-WelcomeLabel2=You're about to install PDF Screenshot Tool - the easiest way to capture PDF pages.%n%n* Screenshots happen while you scroll%n* AI-powered duplicate detection%n* Keyboard shortcuts for power users%n* Lots of customization options%n%nVersion {#MyAppVersion}%n%nClick Next to continue.
-FinishedLabel=Installation complete!%n%nLook for the camera icon in your system tray (bottom-right, near the clock).%n%nCan't find it? Click the ^ arrow to expand the tray.%n%nRight-click the icon to access settings.%n%nEnjoy!
+WelcomeLabel2=You're about to install PDF Screenshot Tool - the easiest way to capture PDF pages.%n%n* Screenshots happen while you scroll%n* AI-powered duplicate detection%n* Fixed installation scrolling + funnier setup experience%n* Keyboard shortcuts for power users%n* Lots of customization options%n%nVersion {#MyAppVersion}%n%nClick Next to continue.
+FinishedLabel=Installation complete!%n%nWhen you launch the app, you'll see our improved welcome screen with funnier text and working scroll!%n%nLook for the camera icon in your system tray (bottom-right, near the clock).%n%nCan't find it? Click the ^ arrow to expand the tray.%n%nRight-click the icon to access settings.%n%nEnjoy!
 FinishedHeadingLabel=Setup Complete!
 ConfirmUninstall=We'll miss you dearly. You'll always be in our heart...%n%nAre you sure you want to completely remove %1 and all of its components?
 UninstallAppFullTitle=Farewell, Friend
@@ -87,6 +87,7 @@ Type: filesandordirs; Name: "{app}"
 
 [Code]
 var
+  WhatsNewPage: TWizardPage;
   HowItWorksPage: TWizardPage;
   FeaturesPage: TWizardPage;
   UseCasesPage: TWizardPage;
@@ -126,9 +127,30 @@ begin
   end;
 end;
 
+procedure CreateWhatsNewPage;
+begin
+  WhatsNewPage := CreateCustomPage(wpWelcome, 
+    'What''s New in v2.1.0', 
+    'Latest improvements and fixes');
+  
+  CreateInfoLabel(WhatsNewPage, 8, 'Latest Updates', True, False);
+  
+  CreateInfoLabel(WhatsNewPage, 52, '🔧 Fixed Installation Scrolling', False, True);
+  CreateInfoLabel(WhatsNewPage, 76, 'You can now scroll through the entire welcome screen! No more missing the "Start" button or important instructions.', False, False);
+  
+  CreateInfoLabel(WhatsNewPage, 130, '😄 Funnier Setup Experience', False, True);
+  CreateInfoLabel(WhatsNewPage, 154, 'We''ve spiced up the welcome screen with more engaging, humorous text. Installation doesn''t have to be boring!', False, False);
+  
+  CreateInfoLabel(WhatsNewPage, 208, '🧠 AI Duplicate Detection', False, True);
+  CreateInfoLabel(WhatsNewPage, 232, 'Smart perceptual hashing automatically skips identical pages, saving you disk space and processing time.', False, False);
+  
+  CreateInfoLabel(WhatsNewPage, 286, '⚙️ Improved Settings', False, True);
+  CreateInfoLabel(WhatsNewPage, 310, 'Better organized settings window with more customization options and clearer explanations.', False, False);
+end;
+
 procedure CreateHowItWorksPage;
 begin
-  HowItWorksPage := CreateCustomPage(wpWelcome, 
+  HowItWorksPage := CreateCustomPage(WhatsNewPage.ID, 
     'How It Works', 
     'Zero-effort PDF page capture - just scroll and go!');
   
@@ -145,6 +167,8 @@ begin
   
   CreateInfoLabel(HowItWorksPage, 286, '[4]  DEDUPLICATE', False, True);
   CreateInfoLabel(HowItWorksPage, 310, 'AI-powered duplicate detection ensures you only keep unique captures - no wasted storage!', False, False);
+  
+  CreateInfoLabel(HowItWorksPage, 364, 'NEW in v2.1.0: Fixed installation scrolling + funnier welcome screen!', False, True);
 end;
 
 procedure CreateFeaturesPage;
@@ -169,6 +193,9 @@ begin
   
   CreateInfoLabel(FeaturesPage, 332, '>>  Auto-Updates', False, True);
   CreateInfoLabel(FeaturesPage, 356, 'Stay current with automatic update checks and one-click upgrades.', False, False);
+  
+  CreateInfoLabel(FeaturesPage, 402, '>>  Improved Installation', False, True);
+  CreateInfoLabel(FeaturesPage, 426, 'Fixed scrolling in welcome screen + funnier setup text for a better first impression!', False, False);
 end;
 
 procedure CreateUseCasesPage;
@@ -198,6 +225,7 @@ procedure InitializeWizard;
 begin
   WizardForm.Color := $000F0A0A;
   
+  CreateWhatsNewPage;
   CreateHowItWorksPage;
   CreateFeaturesPage;
   CreateUseCasesPage;
@@ -263,7 +291,7 @@ procedure CurPageChanged(CurPageID: Integer);
 begin
   case CurPageID of
     wpWelcome:
-      WizardForm.NextButton.Caption := 'Get Started';
+      WizardForm.NextButton.Caption := 'What''s New';
     wpSelectDir:
       WizardForm.NextButton.Caption := 'Continue';
     wpSelectTasks:
@@ -271,7 +299,9 @@ begin
     wpFinished:
       WizardForm.NextButton.Caption := 'Launch';
   else
-    if CurPageID = HowItWorksPage.ID then
+    if CurPageID = WhatsNewPage.ID then
+      WizardForm.NextButton.Caption := 'How It Works'
+    else if CurPageID = HowItWorksPage.ID then
       WizardForm.NextButton.Caption := 'See Features'
     else if CurPageID = FeaturesPage.ID then
       WizardForm.NextButton.Caption := 'Use Cases'
