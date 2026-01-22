@@ -522,6 +522,171 @@
             font-size: 0.8rem;
         }
 
+        /* Trust Notice */
+        .trust-notice {
+            margin-top: 32px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .trust-toggle {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 14px 24px;
+            background: rgba(247, 201, 72, 0.15);
+            border: 2px solid rgba(247, 201, 72, 0.3);
+            border-radius: 12px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.9rem;
+            color: var(--charcoal);
+            transition: all 0.3s;
+        }
+
+        .trust-toggle:hover {
+            background: rgba(247, 201, 72, 0.25);
+            border-color: rgba(247, 201, 72, 0.5);
+        }
+
+        .trust-toggle .trust-icon {
+            font-size: 1.2rem;
+        }
+
+        .trust-toggle .chevron {
+            width: 18px;
+            height: 18px;
+            transition: transform 0.3s;
+        }
+
+        .trust-notice.open .trust-toggle .chevron {
+            transform: rotate(180deg);
+        }
+
+        .trust-details {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-out;
+        }
+
+        .trust-notice.open .trust-details {
+            max-height: 800px;
+        }
+
+        .trust-explanation {
+            padding: 24px;
+            background: white;
+            border: 2px solid rgba(26, 43, 60, 0.06);
+            border-top: none;
+            border-radius: 0 0 12px 12px;
+            text-align: left;
+        }
+
+        .trust-explanation h4 {
+            color: var(--ink);
+            font-size: 1rem;
+            margin-bottom: 10px;
+            margin-top: 20px;
+        }
+
+        .trust-explanation h4:first-child {
+            margin-top: 0;
+        }
+
+        .trust-explanation p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .trust-explanation ul {
+            margin: 12px 0;
+            padding-left: 20px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .trust-explanation ul li {
+            margin-bottom: 8px;
+        }
+
+        .smartscreen-steps {
+            display: flex;
+            gap: 16px;
+            margin: 16px 0;
+        }
+
+        .smartscreen-steps .step {
+            flex: 1;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 16px;
+            background: var(--bg-soft);
+            border-radius: 10px;
+        }
+
+        .smartscreen-steps .step-num {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--seafoam);
+            color: white;
+            border-radius: 50%;
+            font-weight: 700;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+
+        .smartscreen-steps .step div {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .verification-box {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .verify-method {
+            flex: 1;
+            padding: 14px;
+            background: var(--bg-soft);
+            border-radius: 10px;
+            font-size: 0.85rem;
+        }
+
+        .verify-method strong {
+            display: block;
+            margin-bottom: 6px;
+            color: var(--ink);
+        }
+
+        .verify-link {
+            color: var(--deep-teal);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .verify-link:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 600px) {
+            .smartscreen-steps {
+                flex-direction: column;
+            }
+            .verification-box {
+                flex-direction: column;
+            }
+        }
+
         /* Demo Window */
         .hero-visual {
             margin-top: 70px;
@@ -2251,6 +2416,55 @@
                             <small>For the commitment-phobic</small>
                         </a>
                     </div>
+                    
+                    <!-- SmartScreen Notice -->
+                    <div class="trust-notice" id="trust-notice">
+                        <button class="trust-toggle" onclick="toggleTrustInfo()">
+                            <span class="trust-icon">🛡️</span>
+                            <span>See SmartScreen warning? Here's why (and why it's safe)</span>
+                            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </button>
+                        <div class="trust-details" id="trust-details">
+                            <div class="trust-explanation">
+                                <h4>Why Windows Shows a Warning</h4>
+                                <p>Windows SmartScreen warns about downloads from <strong>new or independent developers</strong> — even if the app is completely safe. This happens because:</p>
+                                <ul>
+                                    <li><strong>We're a small project</strong> — SmartScreen trusts big companies (Microsoft, Adobe) automatically, but independent developers need to "earn" trust through download volume</li>
+                                    <li><strong>The app is built with Python</strong> — PyInstaller bundles can trigger false positives in some antivirus software</li>
+                                    <li><strong>We don't have an EV Code Signing Certificate</strong> — These cost $300-500/year and require business verification</li>
+                                </ul>
+                                
+                                <h4>How to Proceed Safely</h4>
+                                <div class="smartscreen-steps">
+                                    <div class="step">
+                                        <span class="step-num">1</span>
+                                        <div>
+                                            <strong>Click "More info"</strong> on the SmartScreen popup
+                                        </div>
+                                    </div>
+                                    <div class="step">
+                                        <span class="step-num">2</span>
+                                        <div>
+                                            <strong>Click "Run anyway"</strong> to proceed with installation
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <h4>Verify the Download (Optional)</h4>
+                                <p>For extra peace of mind, you can verify the file's integrity:</p>
+                                <div class="verification-box">
+                                    <div class="verify-method">
+                                        <strong>🔍 Scan on VirusTotal</strong>
+                                        <a href="https://www.virustotal.com" target="_blank" class="verify-link">Upload and scan →</a>
+                                    </div>
+                                    <div class="verify-method">
+                                        <strong>📋 Check Source Code</strong>
+                                        <a href="https://github.com/draphael123/adobe-reader" target="_blank" class="verify-link">View on GitHub →</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="hero-visual">
@@ -3158,6 +3372,12 @@
     </button>
 
     <script>
+        // Trust notice toggle
+        function toggleTrustInfo() {
+            const notice = document.getElementById('trust-notice');
+            notice.classList.toggle('open');
+        }
+
         // Mobile menu toggle
         const mobileMenuBtn = document.getElementById('mobileMenuBtn');
         const mobileNav = document.getElementById('mobileNav');

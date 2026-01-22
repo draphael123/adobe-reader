@@ -147,6 +147,9 @@ DEFAULT_CONFIG = {
     'min_scroll_distance': 50,  # minimum pixels scrolled before capture
     'max_captures_per_document': 0,  # 0 = unlimited
     'capture_document_only': False,  # crop to document area
+    'burst_mode_enabled': False,  # rapid capture mode
+    'timed_capture_enabled': False,  # capture at intervals
+    'timed_capture_interval': 5,  # seconds between timed captures
     
     # Duplicate detection (perceptual hashing)
     'duplicate_detection_enabled': True,  # enable smart duplicate detection
@@ -162,6 +165,46 @@ DEFAULT_CONFIG = {
     'add_border': False,  # add border around capture
     'border_size': 10,  # border size in pixels
     'border_color': '#ffffff',  # border color
+    'resolution_scale': 100,  # capture resolution percentage (50-100)
+    
+    # Cropping settings
+    'crop_enabled': False,  # enable custom cropping
+    'crop_top': 0,  # pixels to crop from top
+    'crop_bottom': 0,  # pixels to crop from bottom
+    'crop_left': 0,  # pixels to crop from left
+    'crop_right': 0,  # pixels to crop from right
+    'exclude_scrollbar': False,  # try to exclude scrollbar from capture
+    
+    # Watermark settings
+    'watermark_enabled': False,  # enable watermarking
+    'watermark_type': 'timestamp',  # 'timestamp', 'text', 'image'
+    'watermark_text': '',  # custom watermark text
+    'watermark_image_path': '',  # path to watermark image
+    'watermark_position': 'bottom-right',  # 'top-left', 'top-right', 'bottom-left', 'bottom-right', 'center'
+    'watermark_opacity': 50,  # opacity 0-100
+    'watermark_font_size': 14,  # font size for text watermarks
+    'watermark_color': '#ffffff',  # watermark text color
+    'watermark_timestamp_format': '%Y-%m-%d %H:%M:%S',  # timestamp format
+    
+    # Post-capture actions
+    'auto_copy_clipboard': False,  # automatically copy to clipboard after capture
+    'auto_compress': False,  # compress images after capture
+    'compression_level': 85,  # compression quality (lower = smaller file)
+    'backup_folder_enabled': False,  # enable secondary backup folder
+    'backup_folder': '',  # path to backup folder
+    'post_capture_script': '',  # script to run after each capture
+    'post_capture_script_enabled': False,  # enable post-capture script
+    
+    # Quick notes and tags
+    'quick_notes_enabled': False,  # enable quick notes popup
+    'quick_notes_prompt': False,  # prompt for note after each capture
+    'default_tags': '',  # comma-separated default tags
+    'notes_file': 'capture_notes.json',  # file to store notes
+    
+    # Export settings
+    'merge_pdf_enabled': True,  # show merge to PDF option
+    'contact_sheet_columns': 3,  # columns for contact sheet
+    'contact_sheet_thumbnail_size': 200,  # thumbnail size in pixels
     
     # File organization
     'organize_by_document': True,  # create subfolders per document
@@ -169,6 +212,9 @@ DEFAULT_CONFIG = {
     'date_folder_format': 'daily',  # 'daily', 'weekly', 'monthly'
     'max_files_per_folder': 0,  # 0 = unlimited
     'filename_template': '{document}_{date}_{time}',  # filename pattern
+    'filename_prefix': '',  # custom prefix
+    'filename_suffix': '',  # custom suffix
+    'sequential_numbering': False,  # use sequential numbers instead of timestamps
     
     # Hotkeys
     'hotkey_enabled': True,
@@ -176,6 +222,7 @@ DEFAULT_CONFIG = {
     'pause_hotkey': 'ctrl+shift+p',
     'open_folder_hotkey': 'ctrl+shift+o',
     'open_settings_hotkey': 'ctrl+shift+,',
+    'burst_hotkey': 'ctrl+shift+b',  # hotkey for burst mode
     
     # Notifications
     'show_notifications': True,
@@ -183,6 +230,16 @@ DEFAULT_CONFIG = {
     'sound_enabled': True,
     'sound_volume': 100,  # 0-100
     'custom_sound_file': '',  # path to custom .wav file
+    
+    # Floating widget
+    'floating_widget_enabled': False,  # show floating status widget
+    'floating_widget_position': 'bottom-right',  # widget position
+    'floating_widget_opacity': 90,  # widget opacity 0-100
+    'floating_widget_size': 'small',  # 'small', 'medium', 'large'
+    
+    # Appearance
+    'tray_icon_color': 'default',  # 'default', 'green', 'blue', 'orange'
+    'accent_color': '#4f46e5',  # UI accent color
     
     # Auto-cleanup
     'auto_cleanup_enabled': False,
@@ -193,6 +250,12 @@ DEFAULT_CONFIG = {
     'filename_blacklist': '',  # comma-separated patterns to exclude
     'min_window_width': 200,  # minimum window width to capture
     'min_window_height': 200,  # minimum window height to capture
+    
+    # Performance settings
+    'memory_limit_mb': 500,  # pause if memory exceeds this (0 = no limit)
+    'cpu_priority': 'normal',  # 'low', 'normal', 'high'
+    'background_processing': True,  # process in background thread
+    'max_concurrent_saves': 3,  # max simultaneous file saves
     
     # Auto-update
     'auto_update_check': True,  # check for updates on startup
@@ -585,6 +648,272 @@ def play_capture_sound(config=None):
             winsound.PlaySound("SystemAsterisk", winsound.SND_ALIAS | winsound.SND_ASYNC)
     except Exception:
         pass
+
+
+def apply_watermark(img, config):
+    """Apply watermark to image based on config settings."""
+    if not config.get('watermark_enabled'):
+        return img
+    
+    from PIL import ImageDraw, ImageFont
+    
+    watermark_type = config.get('watermark_type', 'timestamp')
+    position = config.get('watermark_position', 'bottom-right')
+    opacity = config.get('watermark_opacity', 50)
+    
+    # Create a copy to work with
+    img = img.copy()
+    
+    if watermark_type == 'timestamp':
+        # Timestamp watermark
+        timestamp_format = config.get('watermark_timestamp_format', '%Y-%m-%d %H:%M:%S')
+        text = datetime.now().strftime(timestamp_format)
+    elif watermark_type == 'text':
+        text = config.get('watermark_text', '')
+    else:
+        text = None
+    
+    if text:
+        # Create overlay for transparency
+        overlay = Image.new('RGBA', img.size, (255, 255, 255, 0))
+        draw = ImageDraw.Draw(overlay)
+        
+        # Get font
+        font_size = config.get('watermark_font_size', 14)
+        try:
+            font = ImageFont.truetype("arial.ttf", font_size)
+        except:
+            try:
+                font = ImageFont.truetype("C:/Windows/Fonts/arial.ttf", font_size)
+            except:
+                font = ImageFont.load_default()
+        
+        # Parse color
+        color_hex = config.get('watermark_color', '#ffffff')
+        try:
+            if color_hex.startswith('#'):
+                color_hex = color_hex[1:]
+            r = int(color_hex[0:2], 16)
+            g = int(color_hex[2:4], 16)
+            b = int(color_hex[4:6], 16)
+            alpha = int(255 * (opacity / 100))
+            color = (r, g, b, alpha)
+        except:
+            color = (255, 255, 255, int(255 * (opacity / 100)))
+        
+        # Calculate text size and position
+        bbox = draw.textbbox((0, 0), text, font=font)
+        text_width = bbox[2] - bbox[0]
+        text_height = bbox[3] - bbox[1]
+        padding = 10
+        
+        img_width, img_height = img.size
+        
+        if position == 'top-left':
+            x, y = padding, padding
+        elif position == 'top-right':
+            x, y = img_width - text_width - padding, padding
+        elif position == 'bottom-left':
+            x, y = padding, img_height - text_height - padding
+        elif position == 'center':
+            x, y = (img_width - text_width) // 2, (img_height - text_height) // 2
+        else:  # bottom-right
+            x, y = img_width - text_width - padding, img_height - text_height - padding
+        
+        # Draw text with background for readability
+        bg_padding = 5
+        draw.rectangle(
+            [x - bg_padding, y - bg_padding, x + text_width + bg_padding, y + text_height + bg_padding],
+            fill=(0, 0, 0, int(128 * (opacity / 100)))
+        )
+        draw.text((x, y), text, font=font, fill=color)
+        
+        # Composite
+        img = img.convert('RGBA')
+        img = Image.alpha_composite(img, overlay)
+        img = img.convert('RGB')
+    
+    elif watermark_type == 'image':
+        # Image watermark
+        watermark_path = config.get('watermark_image_path', '')
+        if watermark_path and Path(watermark_path).exists():
+            try:
+                watermark = Image.open(watermark_path).convert('RGBA')
+                
+                # Scale watermark if needed (max 1/4 of image size)
+                max_wm_width = img.width // 4
+                max_wm_height = img.height // 4
+                if watermark.width > max_wm_width or watermark.height > max_wm_height:
+                    watermark.thumbnail((max_wm_width, max_wm_height), Image.LANCZOS)
+                
+                # Apply opacity
+                alpha = watermark.split()[3]
+                alpha = alpha.point(lambda p: int(p * (opacity / 100)))
+                watermark.putalpha(alpha)
+                
+                # Calculate position
+                img_width, img_height = img.size
+                wm_width, wm_height = watermark.size
+                padding = 10
+                
+                if position == 'top-left':
+                    x, y = padding, padding
+                elif position == 'top-right':
+                    x, y = img_width - wm_width - padding, padding
+                elif position == 'bottom-left':
+                    x, y = padding, img_height - wm_height - padding
+                elif position == 'center':
+                    x, y = (img_width - wm_width) // 2, (img_height - wm_height) // 2
+                else:  # bottom-right
+                    x, y = img_width - wm_width - padding, img_height - wm_height - padding
+                
+                # Paste watermark
+                img = img.convert('RGBA')
+                img.paste(watermark, (x, y), watermark)
+                img = img.convert('RGB')
+            except Exception as e:
+                logger.error(f"Error applying image watermark: {e}")
+    
+    return img
+
+
+def apply_crop_margins(img, config):
+    """Apply custom crop margins to image."""
+    if not config.get('crop_enabled'):
+        return img
+    
+    crop_top = config.get('crop_top', 0)
+    crop_bottom = config.get('crop_bottom', 0)
+    crop_left = config.get('crop_left', 0)
+    crop_right = config.get('crop_right', 0)
+    
+    if crop_top == 0 and crop_bottom == 0 and crop_left == 0 and crop_right == 0:
+        return img
+    
+    width, height = img.size
+    
+    # Calculate crop box
+    left = crop_left
+    top = crop_top
+    right = width - crop_right
+    bottom = height - crop_bottom
+    
+    # Validate
+    if left >= right or top >= bottom:
+        logger.warning("Invalid crop margins - image would be empty")
+        return img
+    
+    return img.crop((left, top, right, bottom))
+
+
+def apply_resolution_scale(img, config):
+    """Scale image resolution based on config."""
+    scale = config.get('resolution_scale', 100)
+    
+    if scale >= 100:
+        return img
+    
+    new_width = int(img.width * (scale / 100))
+    new_height = int(img.height * (scale / 100))
+    
+    if new_width < 10 or new_height < 10:
+        return img
+    
+    return img.resize((new_width, new_height), Image.LANCZOS)
+
+
+def copy_image_to_clipboard(img):
+    """Copy PIL Image to Windows clipboard."""
+    try:
+        import io
+        import ctypes
+        from ctypes import wintypes
+        
+        # Convert to BMP format for clipboard
+        output = io.BytesIO()
+        img.convert('RGB').save(output, 'BMP')
+        data = output.getvalue()[14:]  # Remove BMP header
+        output.close()
+        
+        # Windows clipboard operations
+        CF_DIB = 8
+        GMEM_MOVEABLE = 0x0002
+        
+        kernel32 = ctypes.windll.kernel32
+        user32 = ctypes.windll.user32
+        
+        user32.OpenClipboard(0)
+        user32.EmptyClipboard()
+        
+        # Allocate global memory
+        hMem = kernel32.GlobalAlloc(GMEM_MOVEABLE, len(data))
+        pMem = kernel32.GlobalLock(hMem)
+        
+        # Copy data
+        ctypes.memmove(pMem, data, len(data))
+        kernel32.GlobalUnlock(hMem)
+        
+        # Set clipboard data
+        user32.SetClipboardData(CF_DIB, hMem)
+        user32.CloseClipboard()
+        
+        logger.debug("Image copied to clipboard")
+        return True
+    except Exception as e:
+        logger.error(f"Error copying to clipboard: {e}")
+        return False
+
+
+def compress_image(img, quality=85):
+    """Compress image to reduce file size."""
+    import io
+    
+    # Save to buffer with compression
+    buffer = io.BytesIO()
+    img.save(buffer, format='JPEG', quality=quality, optimize=True)
+    buffer.seek(0)
+    
+    # Reload
+    return Image.open(buffer).convert('RGB')
+
+
+def save_to_backup_folder(filepath, config):
+    """Copy capture to backup folder if enabled."""
+    if not config.get('backup_folder_enabled'):
+        return
+    
+    backup_folder = config.get('backup_folder', '')
+    if not backup_folder:
+        return
+    
+    try:
+        backup_path = Path(backup_folder)
+        backup_path.mkdir(parents=True, exist_ok=True)
+        
+        filename = Path(filepath).name
+        backup_filepath = backup_path / filename
+        
+        shutil.copy2(filepath, backup_filepath)
+        logger.debug(f"Backup saved to: {backup_filepath}")
+    except Exception as e:
+        logger.error(f"Error saving backup: {e}")
+
+
+def run_post_capture_script(filepath, config):
+    """Run custom script after capture."""
+    if not config.get('post_capture_script_enabled'):
+        return
+    
+    script_path = config.get('post_capture_script', '')
+    if not script_path or not Path(script_path).exists():
+        return
+    
+    try:
+        # Run script with filepath as argument
+        subprocess.Popen([script_path, str(filepath)], shell=True)
+        logger.debug(f"Post-capture script executed: {script_path}")
+    except Exception as e:
+        logger.error(f"Error running post-capture script: {e}")
 
 
 def parse_filename_template(template, doc_name, config=None):
@@ -1012,6 +1341,12 @@ class AcrobatMonitor:
                     # Add hash to track this page as captured
                     self.add_page_hash(current_hash, doc_name)
                 
+                # Apply custom crop margins first
+                img = apply_crop_margins(img, self.config)
+                
+                # Apply resolution scaling
+                img = apply_resolution_scale(img, self.config)
+                
                 # Apply grayscale if enabled
                 if self.config.get('grayscale_mode'):
                     img = img.convert('L').convert('RGB')
@@ -1057,6 +1392,14 @@ class AcrobatMonitor:
                     bordered_img = Image.new('RGB', (new_width, new_height), color)
                     bordered_img.paste(img, (border_size, border_size))
                     img = bordered_img
+                
+                # Apply watermark
+                img = apply_watermark(img, self.config)
+                
+                # Auto-compress if enabled
+                if self.config.get('auto_compress'):
+                    compression_level = self.config.get('compression_level', 85)
+                    img = compress_image(img, compression_level)
                 
                 # Determine save location
                 base_folder = Path(self.config.get('save_folder'))
@@ -1128,6 +1471,16 @@ class AcrobatMonitor:
                 # Play sound if enabled
                 if self.config.get('sound_enabled'):
                     play_capture_sound(self.config)
+                
+                # Auto-copy to clipboard if enabled
+                if self.config.get('auto_copy_clipboard'):
+                    copy_image_to_clipboard(img)
+                
+                # Save to backup folder if enabled
+                save_to_backup_folder(str(filepath), self.config)
+                
+                # Run post-capture script if enabled
+                run_post_capture_script(str(filepath), self.config)
                 
                 # Record in recent captures (limit to 50)
                 self.recent_captures.append({
@@ -2611,6 +2964,190 @@ class AdvancedSettingsWindow:
         ttk.Entry(sound_frame, textvariable=self.sound_file_var, width=40).pack(side=tk.LEFT)
         ttk.Button(sound_frame, text="Browse", command=self.browse_sound).pack(side=tk.LEFT, padx=5)
         
+        # === Watermark Tab ===
+        watermark_frame = ttk.Frame(notebook, padding=15)
+        notebook.add(watermark_frame, text="Watermark")
+        
+        ttk.Label(watermark_frame, text="Watermark Settings", style='Header.TLabel').pack(anchor=tk.W)
+        ttk.Separator(watermark_frame, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=5)
+        
+        self.watermark_enabled_var = tk.BooleanVar(value=self.config.get('watermark_enabled'))
+        ttk.Checkbutton(watermark_frame, text="Enable watermark on captures", variable=self.watermark_enabled_var).pack(anchor=tk.W)
+        
+        ttk.Label(watermark_frame, text="Watermark type:").pack(anchor=tk.W, pady=(10, 0))
+        type_frame = ttk.Frame(watermark_frame)
+        type_frame.pack(fill=tk.X, pady=5)
+        self.watermark_type_var = tk.StringVar(value=self.config.get('watermark_type'))
+        ttk.Radiobutton(type_frame, text="Timestamp", variable=self.watermark_type_var, value='timestamp').pack(side=tk.LEFT)
+        ttk.Radiobutton(type_frame, text="Custom Text", variable=self.watermark_type_var, value='text').pack(side=tk.LEFT, padx=10)
+        ttk.Radiobutton(type_frame, text="Image", variable=self.watermark_type_var, value='image').pack(side=tk.LEFT)
+        
+        ttk.Label(watermark_frame, text="Custom text:").pack(anchor=tk.W, pady=(10, 0))
+        self.watermark_text_var = tk.StringVar(value=self.config.get('watermark_text'))
+        ttk.Entry(watermark_frame, textvariable=self.watermark_text_var, width=40).pack(anchor=tk.W, pady=2)
+        
+        ttk.Label(watermark_frame, text="Timestamp format:").pack(anchor=tk.W, pady=(10, 0))
+        self.watermark_ts_format_var = tk.StringVar(value=self.config.get('watermark_timestamp_format'))
+        ttk.Entry(watermark_frame, textvariable=self.watermark_ts_format_var, width=30).pack(anchor=tk.W, pady=2)
+        ttk.Label(watermark_frame, text="(e.g. %Y-%m-%d %H:%M:%S)", font=('Segoe UI', 8)).pack(anchor=tk.W)
+        
+        ttk.Label(watermark_frame, text="Position:").pack(anchor=tk.W, pady=(10, 0))
+        pos_frame = ttk.Frame(watermark_frame)
+        pos_frame.pack(fill=tk.X, pady=5)
+        self.watermark_pos_var = tk.StringVar(value=self.config.get('watermark_position'))
+        positions = [('Top-Left', 'top-left'), ('Top-Right', 'top-right'), ('Bottom-Left', 'bottom-left'), ('Bottom-Right', 'bottom-right'), ('Center', 'center')]
+        for text, value in positions:
+            ttk.Radiobutton(pos_frame, text=text, variable=self.watermark_pos_var, value=value).pack(side=tk.LEFT, padx=3)
+        
+        opacity_frame = ttk.Frame(watermark_frame)
+        opacity_frame.pack(fill=tk.X, pady=5)
+        ttk.Label(opacity_frame, text="Opacity:").pack(side=tk.LEFT)
+        self.watermark_opacity_var = tk.StringVar(value=str(self.config.get('watermark_opacity')))
+        ttk.Spinbox(opacity_frame, from_=10, to=100, increment=10, textvariable=self.watermark_opacity_var, width=8).pack(side=tk.LEFT, padx=5)
+        ttk.Label(opacity_frame, text="%").pack(side=tk.LEFT)
+        
+        font_frame = ttk.Frame(watermark_frame)
+        font_frame.pack(fill=tk.X, pady=5)
+        ttk.Label(font_frame, text="Font size:").pack(side=tk.LEFT)
+        self.watermark_fontsize_var = tk.StringVar(value=str(self.config.get('watermark_font_size')))
+        ttk.Spinbox(font_frame, from_=8, to=48, increment=2, textvariable=self.watermark_fontsize_var, width=8).pack(side=tk.LEFT, padx=5)
+        
+        color_frame = ttk.Frame(watermark_frame)
+        color_frame.pack(fill=tk.X, pady=5)
+        ttk.Label(color_frame, text="Text color:").pack(side=tk.LEFT)
+        self.watermark_color_var = tk.StringVar(value=self.config.get('watermark_color'))
+        ttk.Entry(color_frame, textvariable=self.watermark_color_var, width=10).pack(side=tk.LEFT, padx=5)
+        ttk.Label(color_frame, text="(hex, e.g. #ffffff)").pack(side=tk.LEFT)
+        
+        # === Cropping Tab ===
+        crop_frame = ttk.Frame(notebook, padding=15)
+        notebook.add(crop_frame, text="Cropping")
+        
+        ttk.Label(crop_frame, text="Crop Settings", style='Header.TLabel').pack(anchor=tk.W)
+        ttk.Separator(crop_frame, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=5)
+        
+        self.crop_enabled_var = tk.BooleanVar(value=self.config.get('crop_enabled'))
+        ttk.Checkbutton(crop_frame, text="Enable custom crop margins", variable=self.crop_enabled_var).pack(anchor=tk.W)
+        
+        ttk.Label(crop_frame, text="Crop margins (pixels to remove from each edge):", style='Header.TLabel').pack(anchor=tk.W, pady=(15, 5))
+        
+        margins_frame = ttk.Frame(crop_frame)
+        margins_frame.pack(fill=tk.X, pady=10)
+        
+        # Top
+        top_frame = ttk.Frame(margins_frame)
+        top_frame.pack(fill=tk.X, pady=2)
+        ttk.Label(top_frame, text="Top:", width=10).pack(side=tk.LEFT)
+        self.crop_top_var = tk.StringVar(value=str(self.config.get('crop_top')))
+        ttk.Spinbox(top_frame, from_=0, to=500, increment=10, textvariable=self.crop_top_var, width=8).pack(side=tk.LEFT, padx=5)
+        
+        # Bottom
+        bottom_frame = ttk.Frame(margins_frame)
+        bottom_frame.pack(fill=tk.X, pady=2)
+        ttk.Label(bottom_frame, text="Bottom:", width=10).pack(side=tk.LEFT)
+        self.crop_bottom_var = tk.StringVar(value=str(self.config.get('crop_bottom')))
+        ttk.Spinbox(bottom_frame, from_=0, to=500, increment=10, textvariable=self.crop_bottom_var, width=8).pack(side=tk.LEFT, padx=5)
+        
+        # Left
+        left_frame = ttk.Frame(margins_frame)
+        left_frame.pack(fill=tk.X, pady=2)
+        ttk.Label(left_frame, text="Left:", width=10).pack(side=tk.LEFT)
+        self.crop_left_var = tk.StringVar(value=str(self.config.get('crop_left')))
+        ttk.Spinbox(left_frame, from_=0, to=500, increment=10, textvariable=self.crop_left_var, width=8).pack(side=tk.LEFT, padx=5)
+        
+        # Right
+        right_frame = ttk.Frame(margins_frame)
+        right_frame.pack(fill=tk.X, pady=2)
+        ttk.Label(right_frame, text="Right:", width=10).pack(side=tk.LEFT)
+        self.crop_right_var = tk.StringVar(value=str(self.config.get('crop_right')))
+        ttk.Spinbox(right_frame, from_=0, to=500, increment=10, textvariable=self.crop_right_var, width=8).pack(side=tk.LEFT, padx=5)
+        
+        ttk.Label(crop_frame, text="Resolution Scaling", style='Header.TLabel').pack(anchor=tk.W, pady=(15, 5))
+        ttk.Separator(crop_frame, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=5)
+        
+        scale_frame = ttk.Frame(crop_frame)
+        scale_frame.pack(fill=tk.X, pady=5)
+        ttk.Label(scale_frame, text="Resolution scale:").pack(side=tk.LEFT)
+        self.resolution_scale_var = tk.StringVar(value=str(self.config.get('resolution_scale')))
+        ttk.Spinbox(scale_frame, from_=25, to=100, increment=5, textvariable=self.resolution_scale_var, width=8).pack(side=tk.LEFT, padx=5)
+        ttk.Label(scale_frame, text="% (lower = smaller files)").pack(side=tk.LEFT)
+        
+        # === Actions Tab ===
+        actions_frame = ttk.Frame(notebook, padding=15)
+        notebook.add(actions_frame, text="Actions")
+        
+        ttk.Label(actions_frame, text="Post-Capture Actions", style='Header.TLabel').pack(anchor=tk.W)
+        ttk.Separator(actions_frame, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=5)
+        
+        self.clipboard_var = tk.BooleanVar(value=self.config.get('auto_copy_clipboard'))
+        ttk.Checkbutton(actions_frame, text="Copy to clipboard after capture", variable=self.clipboard_var).pack(anchor=tk.W)
+        
+        self.auto_compress_var = tk.BooleanVar(value=self.config.get('auto_compress'))
+        ttk.Checkbutton(actions_frame, text="Auto-compress images", variable=self.auto_compress_var).pack(anchor=tk.W)
+        
+        compress_frame = ttk.Frame(actions_frame)
+        compress_frame.pack(fill=tk.X, pady=5)
+        ttk.Label(compress_frame, text="Compression quality:").pack(side=tk.LEFT)
+        self.compression_var = tk.StringVar(value=str(self.config.get('compression_level')))
+        ttk.Spinbox(compress_frame, from_=50, to=95, increment=5, textvariable=self.compression_var, width=8).pack(side=tk.LEFT, padx=5)
+        ttk.Label(compress_frame, text="% (lower = smaller)").pack(side=tk.LEFT)
+        
+        ttk.Label(actions_frame, text="Backup Folder", style='Header.TLabel').pack(anchor=tk.W, pady=(15, 0))
+        ttk.Separator(actions_frame, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=5)
+        
+        self.backup_enabled_var = tk.BooleanVar(value=self.config.get('backup_folder_enabled'))
+        ttk.Checkbutton(actions_frame, text="Save copy to backup folder", variable=self.backup_enabled_var).pack(anchor=tk.W)
+        
+        backup_path_frame = ttk.Frame(actions_frame)
+        backup_path_frame.pack(fill=tk.X, pady=5)
+        self.backup_folder_var = tk.StringVar(value=self.config.get('backup_folder'))
+        ttk.Entry(backup_path_frame, textvariable=self.backup_folder_var, width=35).pack(side=tk.LEFT)
+        ttk.Button(backup_path_frame, text="Browse", command=self.browse_backup_folder).pack(side=tk.LEFT, padx=5)
+        
+        ttk.Label(actions_frame, text="Post-Capture Script", style='Header.TLabel').pack(anchor=tk.W, pady=(15, 0))
+        ttk.Separator(actions_frame, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=5)
+        
+        self.script_enabled_var = tk.BooleanVar(value=self.config.get('post_capture_script_enabled'))
+        ttk.Checkbutton(actions_frame, text="Run script after each capture", variable=self.script_enabled_var).pack(anchor=tk.W)
+        
+        script_path_frame = ttk.Frame(actions_frame)
+        script_path_frame.pack(fill=tk.X, pady=5)
+        self.script_path_var = tk.StringVar(value=self.config.get('post_capture_script'))
+        ttk.Entry(script_path_frame, textvariable=self.script_path_var, width=35).pack(side=tk.LEFT)
+        ttk.Button(script_path_frame, text="Browse", command=self.browse_script).pack(side=tk.LEFT, padx=5)
+        ttk.Label(actions_frame, text="(Script will receive filepath as first argument)", font=('Segoe UI', 8)).pack(anchor=tk.W)
+        
+        # === Performance Tab ===
+        perf_frame = ttk.Frame(notebook, padding=15)
+        notebook.add(perf_frame, text="Performance")
+        
+        ttk.Label(perf_frame, text="Performance Settings", style='Header.TLabel').pack(anchor=tk.W)
+        ttk.Separator(perf_frame, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=5)
+        
+        mem_frame = ttk.Frame(perf_frame)
+        mem_frame.pack(fill=tk.X, pady=5)
+        ttk.Label(mem_frame, text="Memory limit:").pack(side=tk.LEFT)
+        self.memory_limit_var = tk.StringVar(value=str(self.config.get('memory_limit_mb')))
+        ttk.Spinbox(mem_frame, from_=0, to=2000, increment=100, textvariable=self.memory_limit_var, width=8).pack(side=tk.LEFT, padx=5)
+        ttk.Label(mem_frame, text="MB (0 = no limit)").pack(side=tk.LEFT)
+        
+        ttk.Label(perf_frame, text="CPU Priority:").pack(anchor=tk.W, pady=(10, 0))
+        priority_frame = ttk.Frame(perf_frame)
+        priority_frame.pack(fill=tk.X, pady=5)
+        self.cpu_priority_var = tk.StringVar(value=self.config.get('cpu_priority'))
+        ttk.Radiobutton(priority_frame, text="Low", variable=self.cpu_priority_var, value='low').pack(side=tk.LEFT)
+        ttk.Radiobutton(priority_frame, text="Normal", variable=self.cpu_priority_var, value='normal').pack(side=tk.LEFT, padx=10)
+        ttk.Radiobutton(priority_frame, text="High", variable=self.cpu_priority_var, value='high').pack(side=tk.LEFT)
+        
+        self.background_var = tk.BooleanVar(value=self.config.get('background_processing'))
+        ttk.Checkbutton(perf_frame, text="Process captures in background", variable=self.background_var).pack(anchor=tk.W, pady=5)
+        
+        concurrent_frame = ttk.Frame(perf_frame)
+        concurrent_frame.pack(fill=tk.X, pady=5)
+        ttk.Label(concurrent_frame, text="Max concurrent saves:").pack(side=tk.LEFT)
+        self.concurrent_var = tk.StringVar(value=str(self.config.get('max_concurrent_saves')))
+        ttk.Spinbox(concurrent_frame, from_=1, to=10, increment=1, textvariable=self.concurrent_var, width=8).pack(side=tk.LEFT, padx=5)
+        
         # === Updates Tab ===
         updates_frame = ttk.Frame(notebook, padding=15)
         notebook.add(updates_frame, text="Updates")
@@ -2668,6 +3205,18 @@ class AdvancedSettingsWindow:
         if file:
             self.sound_file_var.set(file)
     
+    def browse_backup_folder(self):
+        from tkinter import filedialog
+        folder = filedialog.askdirectory()
+        if folder:
+            self.backup_folder_var.set(folder)
+    
+    def browse_script(self):
+        from tkinter import filedialog
+        file = filedialog.askopenfilename(filetypes=[("All files", "*.*"), ("Batch files", "*.bat"), ("PowerShell", "*.ps1"), ("Python", "*.py")])
+        if file:
+            self.script_path_var.set(file)
+    
     def clear_page_hashes(self):
         """Clear all captured page hashes to allow re-capturing."""
         if self.monitor:
@@ -2711,6 +3260,39 @@ class AdvancedSettingsWindow:
         self.config.set('notification_duration', int(self.notif_dur_var.get()))
         self.config.set('sound_volume', int(self.volume_var.get()))
         self.config.set('custom_sound_file', self.sound_file_var.get())
+        
+        # Watermark settings
+        self.config.set('watermark_enabled', self.watermark_enabled_var.get())
+        self.config.set('watermark_type', self.watermark_type_var.get())
+        self.config.set('watermark_text', self.watermark_text_var.get())
+        self.config.set('watermark_timestamp_format', self.watermark_ts_format_var.get())
+        self.config.set('watermark_position', self.watermark_pos_var.get())
+        self.config.set('watermark_opacity', int(self.watermark_opacity_var.get()))
+        self.config.set('watermark_font_size', int(self.watermark_fontsize_var.get()))
+        self.config.set('watermark_color', self.watermark_color_var.get())
+        
+        # Cropping settings
+        self.config.set('crop_enabled', self.crop_enabled_var.get())
+        self.config.set('crop_top', int(self.crop_top_var.get()))
+        self.config.set('crop_bottom', int(self.crop_bottom_var.get()))
+        self.config.set('crop_left', int(self.crop_left_var.get()))
+        self.config.set('crop_right', int(self.crop_right_var.get()))
+        self.config.set('resolution_scale', int(self.resolution_scale_var.get()))
+        
+        # Actions settings
+        self.config.set('auto_copy_clipboard', self.clipboard_var.get())
+        self.config.set('auto_compress', self.auto_compress_var.get())
+        self.config.set('compression_level', int(self.compression_var.get()))
+        self.config.set('backup_folder_enabled', self.backup_enabled_var.get())
+        self.config.set('backup_folder', self.backup_folder_var.get())
+        self.config.set('post_capture_script_enabled', self.script_enabled_var.get())
+        self.config.set('post_capture_script', self.script_path_var.get())
+        
+        # Performance settings
+        self.config.set('memory_limit_mb', int(self.memory_limit_var.get()))
+        self.config.set('cpu_priority', self.cpu_priority_var.get())
+        self.config.set('background_processing', self.background_var.get())
+        self.config.set('max_concurrent_saves', int(self.concurrent_var.get()))
         
         # Update settings
         self.config.set('auto_update_check', self.auto_update_var.get())
