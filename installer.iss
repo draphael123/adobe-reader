@@ -58,6 +58,10 @@ WelcomeLabel1=Welcome to PDF Screenshot Tool!
 WelcomeLabel2=You're about to install PDF Screenshot Tool - the easiest way to capture PDF pages.%n%n* Screenshots happen while you scroll%n* AI-powered duplicate detection%n* Keyboard shortcuts for power users%n* Lots of customization options%n%nVersion {#MyAppVersion}%n%nClick Next to continue.
 FinishedLabel=Installation complete!%n%nLook for the camera icon in your system tray (bottom-right, near the clock).%n%nCan't find it? Click the ^ arrow to expand the tray.%n%nRight-click the icon to access settings.%n%nEnjoy!
 FinishedHeadingLabel=Setup Complete!
+ConfirmUninstall=We'll miss you dearly. You'll always be in our heart...%n%nAre you sure you want to completely remove %1 and all of its components?
+UninstallAppFullTitle=Farewell, Friend
+UninstalledAll=%1 was successfully removed from your computer.%n%nThank you for giving us a try. If you ever need to capture PDF pages again, we'll be here waiting. Take care out there!
+UninstalledMost=%1 uninstall has completed.%n%nSome elements could not be removed. You can remove them manually if you'd like.%n%nWe hope to see you again someday!
 
 [Tasks]
 Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription: "Additional Options:"; Flags: checkedonce
