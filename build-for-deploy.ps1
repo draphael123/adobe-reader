@@ -60,3 +60,4 @@ Get-ChildItem -Recurse $publicDir | ForEach-Object {
     }
 }
 
+

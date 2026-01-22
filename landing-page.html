@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDF Screenshot Tool - Automatic Page Capture for Adobe Acrobat</title>
+    <title>PDF Screenshot Tool - Automatic PDF Page Capture</title>
     <meta name="description" content="Automatically capture screenshots of every PDF page as you navigate in Adobe Acrobat. Perfect for compliance, documentation, and audit trails. Free Windows app.">
     <meta name="keywords" content="PDF screenshot, Adobe Acrobat, automatic capture, page capture, compliance tool, audit trail, document capture">
-    <meta name="author" content="PDF Screenshot Tool">
+    <meta name="author" content="Daniel Raphael">
     
     <!-- Open Graph / Social Media -->
     <meta property="og:type" content="website">
     <meta property="og:title" content="PDF Screenshot Tool - Automatic Page Capture for Adobe Acrobat">
     <meta property="og:description" content="Automatically capture screenshots of every PDF page as you navigate. Perfect for compliance and audit trails.">
-    <meta property="og:image" content="assets/og-image.png">
+    <meta property="og:image" content="https://pdfscreenshottool.com/assets/og-image.png">
     <meta property="og:url" content="https://pdfscreenshottool.com">
     
     <!-- Twitter Card -->
@@ -23,9 +23,31 @@
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="assets/icon.ico">
     
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "PDF Screenshot Tool",
+        "operatingSystem": "Windows 10, Windows 11",
+        "applicationCategory": "UtilitiesApplication",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        },
+        "description": "Automatically capture screenshots of every PDF page as you navigate in Adobe Acrobat.",
+        "softwareVersion": "2.1.0",
+        "author": {
+            "@type": "Person",
+            "name": "Daniel Raphael"
+        }
+    }
+    </script>
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -34,26 +56,33 @@
         }
 
         :root {
-            --white: #ffffff;
-            --gray-50: #f8fafc;
-            --gray-100: #f1f5f9;
-            --gray-200: #e2e8f0;
-            --gray-300: #cbd5e1;
-            --gray-400: #94a3b8;
-            --gray-500: #64748b;
-            --gray-600: #475569;
-            --gray-700: #334155;
-            --gray-800: #1e293b;
-            --gray-900: #0f172a;
-            --blue-50: #eff6ff;
-            --blue-100: #dbeafe;
-            --blue-200: #bfdbfe;
-            --blue-500: #3b82f6;
-            --blue-600: #2563eb;
-            --blue-700: #1d4ed8;
-            --blue-800: #1e40af;
-            --green-500: #22c55e;
-            --green-600: #16a34a;
+            /* Vibrant gradient palette */
+            --coral: #ff6b6b;
+            --orange: #ffa94d;
+            --yellow: #ffd43b;
+            --mint: #69db7c;
+            --cyan: #22d3ee;
+            --blue: #4dabf7;
+            --purple: #9775fa;
+            --pink: #f783ac;
+            
+            /* Dark theme base */
+            --bg-dark: #0a0a0f;
+            --bg-card: #12121a;
+            --bg-card-hover: #1a1a25;
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+            --text-muted: #71717a;
+            
+            /* Gradients */
+            --gradient-primary: linear-gradient(135deg, #ff6b6b 0%, #ffa94d 50%, #ffd43b 100%);
+            --gradient-secondary: linear-gradient(135deg, #4dabf7 0%, #9775fa 50%, #f783ac 100%);
+            --gradient-accent: linear-gradient(135deg, #22d3ee 0%, #69db7c 100%);
+            --gradient-bg: linear-gradient(180deg, #0a0a0f 0%, #12121a 50%, #1a1025 100%);
+            
+            /* Glass effect */
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
         }
 
         html {
@@ -61,28 +90,60 @@
         }
 
         body {
-            font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--white);
-            color: var(--gray-800);
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
             line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Animated background */
+        .bg-gradient {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: -1;
+            background: var(--gradient-bg);
+        }
+
+        .bg-gradient::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 20%, rgba(255, 107, 107, 0.15) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 60%, rgba(151, 117, 250, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 40% 80%, rgba(34, 211, 238, 0.08) 0%, transparent 40%);
+            animation: bgMove 20s ease-in-out infinite;
+        }
+
+        @keyframes bgMove {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(2%, 2%) rotate(1deg); }
+            66% { transform: translate(-1%, 1%) rotate(-1deg); }
         }
 
         .container {
-            max-width: 1140px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 0 24px;
         }
 
         /* Header */
         header {
-            padding: 16px 0;
+            padding: 20px 0;
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             z-index: 1000;
-            background: var(--white);
-            border-bottom: 1px solid var(--gray-200);
+            background: rgba(10, 10, 15, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
         }
 
         .header-inner {
@@ -94,45 +155,63 @@
         .logo {
             display: flex;
             align-items: center;
-            gap: 10px;
-            font-weight: 600;
-            font-size: 1.125rem;
-            color: var(--gray-900);
+            gap: 12px;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--text-primary);
             text-decoration: none;
         }
 
         .logo-icon {
-            width: 36px;
-            height: 36px;
-            background: var(--blue-600);
-            border-radius: 8px;
+            width: 40px;
+            height: 40px;
+            background: var(--gradient-primary);
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
+            box-shadow: 0 4px 20px rgba(255, 107, 107, 0.3);
         }
 
         .logo-icon svg {
-            width: 20px;
-            height: 20px;
+            width: 22px;
+            height: 22px;
             fill: white;
         }
 
         .nav-links {
             display: flex;
-            gap: 32px;
+            gap: 36px;
             list-style: none;
+            align-items: center;
         }
 
         .nav-links a {
-            color: var(--gray-600);
+            color: var(--text-secondary);
             text-decoration: none;
             font-weight: 500;
-            font-size: 0.9rem;
-            transition: color 0.2s;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+            position: relative;
         }
 
         .nav-links a:hover {
-            color: var(--blue-600);
+            color: var(--text-primary);
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--gradient-primary);
+            transition: width 0.3s;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
         }
 
         .mobile-menu-btn {
@@ -147,9 +226,9 @@
 
         .mobile-menu-btn span {
             display: block;
-            width: 22px;
+            width: 24px;
             height: 2px;
-            background: var(--gray-700);
+            background: var(--text-primary);
             transition: all 0.3s;
         }
 
@@ -160,9 +239,9 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: var(--white);
+            background: var(--bg-dark);
             z-index: 999;
-            padding: 80px 24px;
+            padding: 100px 24px;
             opacity: 0;
             visibility: hidden;
             transition: all 0.3s;
@@ -177,24 +256,24 @@
             list-style: none;
             display: flex;
             flex-direction: column;
-            gap: 24px;
+            gap: 28px;
         }
 
         .mobile-nav a {
-            color: var(--gray-800);
+            color: var(--text-primary);
             text-decoration: none;
-            font-size: 1.25rem;
-            font-weight: 500;
+            font-size: 1.5rem;
+            font-weight: 600;
         }
 
         /* Hero */
         .hero {
-            padding: 140px 0 80px;
-            background: linear-gradient(180deg, var(--blue-50) 0%, var(--white) 100%);
+            padding: 160px 0 100px;
+            position: relative;
         }
 
         .hero-content {
-            max-width: 720px;
+            max-width: 800px;
             margin: 0 auto;
             text-align: center;
         }
@@ -202,171 +281,297 @@
         .badge {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            background: var(--white);
-            border: 1px solid var(--gray-200);
-            padding: 8px 16px;
+            gap: 10px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            padding: 10px 20px;
             border-radius: 100px;
-            font-size: 0.875rem;
+            font-size: 0.9rem;
             font-weight: 500;
-            color: var(--gray-600);
-            margin-bottom: 24px;
+            color: var(--text-secondary);
+            margin-bottom: 28px;
+            backdrop-filter: blur(10px);
         }
 
         .badge-dot {
             width: 8px;
             height: 8px;
-            background: var(--green-500);
+            background: var(--mint);
             border-radius: 50%;
+            animation: pulse 2s infinite;
+            box-shadow: 0 0 10px var(--mint);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.1); }
         }
 
         h1 {
-            font-size: clamp(2.5rem, 5vw, 3.5rem);
-            font-weight: 700;
-            line-height: 1.15;
-            margin-bottom: 20px;
-            color: var(--gray-900);
-            letter-spacing: -0.02em;
+            font-size: clamp(3rem, 6vw, 4.5rem);
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 24px;
+            letter-spacing: -0.03em;
         }
 
-        h1 .highlight {
-            color: var(--blue-600);
+        h1 .gradient-text {
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .hero-subtitle {
-            font-size: 1.125rem;
-            color: var(--gray-600);
-            max-width: 540px;
-            margin: 0 auto 32px;
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto 40px;
             line-height: 1.7;
+        }
+
+        .hero-subtitle strong {
+            color: var(--cyan);
+        }
+
+        /* System Requirements Badge */
+        .system-req {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 28px;
+            backdrop-filter: blur(10px);
+        }
+
+        .system-req svg {
+            width: 18px;
+            height: 18px;
+            stroke: var(--cyan);
         }
 
         .cta-group {
             display: flex;
-            gap: 12px;
+            gap: 16px;
             justify-content: center;
             flex-wrap: wrap;
+            margin-bottom: 20px;
         }
 
         .btn {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            padding: 14px 28px;
-            border-radius: 8px;
+            gap: 10px;
+            padding: 16px 32px;
+            border-radius: 14px;
             font-weight: 600;
-            font-size: 0.95rem;
+            font-size: 1rem;
             text-decoration: none;
-            transition: all 0.2s;
+            transition: all 0.3s;
             cursor: pointer;
             border: none;
             font-family: inherit;
         }
 
         .btn-primary {
-            background: var(--blue-600);
+            background: var(--gradient-primary);
             color: white;
+            box-shadow: 0 4px 20px rgba(255, 107, 107, 0.4);
         }
 
         .btn-primary:hover {
-            background: var(--blue-700);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(255, 107, 107, 0.5);
         }
 
         .btn-secondary {
-            background: var(--white);
-            color: var(--gray-700);
-            border: 1px solid var(--gray-300);
+            background: var(--glass-bg);
+            color: var(--text-primary);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(10px);
         }
 
         .btn-secondary:hover {
-            background: var(--gray-50);
-            border-color: var(--gray-400);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.15);
         }
 
         .btn svg {
-            width: 18px;
-            height: 18px;
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Download Info */
+        .download-info {
+            display: flex;
+            gap: 24px;
+            justify-content: center;
+            flex-wrap: wrap;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        .download-info span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .download-info a {
+            color: var(--cyan);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .download-info a:hover {
+            color: var(--mint);
+        }
+
+        .download-options {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .download-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            padding: 16px 28px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            text-decoration: none;
+            color: var(--text-secondary);
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+        }
+
+        .download-option:hover {
+            border-color: var(--coral);
+            background: rgba(255, 107, 107, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .download-option strong {
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        .download-option small {
+            color: var(--text-muted);
+            font-size: 0.8rem;
         }
 
         /* Demo Window */
         .hero-visual {
-            margin-top: 60px;
+            margin-top: 70px;
+            perspective: 1000px;
         }
 
         .demo-window {
-            background: var(--white);
-            border: 1px solid var(--gray-200);
-            border-radius: 12px;
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
             overflow: hidden;
-            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
-            max-width: 900px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5),
+                        0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+            max-width: 950px;
             margin: 0 auto;
+            transform: rotateX(2deg);
+            transition: transform 0.5s;
+        }
+
+        .demo-window:hover {
+            transform: rotateX(0deg);
         }
 
         .demo-titlebar {
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 14px 20px;
-            background: var(--gray-50);
-            border-bottom: 1px solid var(--gray-200);
+            gap: 10px;
+            padding: 16px 24px;
+            background: rgba(255, 255, 255, 0.02);
+            border-bottom: 1px solid var(--glass-border);
         }
 
         .demo-dots {
             display: flex;
-            gap: 6px;
+            gap: 8px;
         }
 
         .demo-dot {
-            width: 10px;
-            height: 10px;
+            width: 12px;
+            height: 12px;
             border-radius: 50%;
-            background: var(--gray-300);
         }
 
-        .demo-dot:first-child { background: #ef4444; }
-        .demo-dot:nth-child(2) { background: #f59e0b; }
-        .demo-dot:nth-child(3) { background: #22c55e; }
+        .demo-dot:first-child { background: #ff5f57; }
+        .demo-dot:nth-child(2) { background: #febc2e; }
+        .demo-dot:nth-child(3) { background: #28c840; }
 
         .demo-title {
             flex: 1;
             text-align: center;
-            font-size: 0.8rem;
-            color: var(--gray-500);
-            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
         }
 
         .demo-content {
             padding: 40px;
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 32px;
+            gap: 40px;
             align-items: center;
         }
 
         .demo-pdf {
-            background: var(--gray-50);
-            border-radius: 8px;
-            padding: 24px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+            border-radius: 12px;
+            padding: 28px;
             aspect-ratio: 8.5/11;
             display: flex;
             flex-direction: column;
-            gap: 12px;
-            border: 1px solid var(--gray-200);
+            gap: 14px;
+            border: 1px solid var(--glass-border);
+            position: relative;
         }
 
         .demo-line {
-            height: 8px;
-            background: var(--gray-200);
-            border-radius: 4px;
+            height: 10px;
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+            border-radius: 5px;
         }
 
-        .demo-line:nth-child(1) { width: 60%; }
+        .demo-line:nth-child(1) { width: 55%; background: var(--gradient-primary); opacity: 0.3; }
         .demo-line:nth-child(2) { width: 100%; }
-        .demo-line:nth-child(3) { width: 90%; }
+        .demo-line:nth-child(3) { width: 85%; }
         .demo-line:nth-child(4) { width: 100%; }
-        .demo-line:nth-child(5) { width: 75%; }
-        .demo-line:nth-child(6) { width: 85%; }
+        .demo-line:nth-child(5) { width: 70%; }
+        .demo-line:nth-child(6) { width: 90%; }
+
+        .demo-page-indicator {
+            position: absolute;
+            bottom: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--gradient-secondary);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
+        }
 
         .demo-capture-area {
             display: flex;
@@ -375,99 +580,122 @@
         }
 
         .capture-preview {
-            background: var(--gray-50);
-            border: 1px solid var(--gray-200);
-            border-radius: 8px;
-            padding: 16px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 18px;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
+            opacity: 0;
+            transform: translateX(30px);
+            animation: slideIn 0.6s forwards;
+        }
+
+        .capture-preview:nth-child(1) { animation-delay: 0.3s; }
+        .capture-preview:nth-child(2) { animation-delay: 1.5s; }
+        .capture-preview:nth-child(3) { animation-delay: 2.7s; }
+
+        @keyframes slideIn {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
         }
 
         .capture-icon {
-            width: 40px;
-            height: 40px;
-            background: var(--blue-100);
-            border-radius: 8px;
+            width: 44px;
+            height: 44px;
+            background: var(--gradient-accent);
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
+            box-shadow: 0 4px 15px rgba(34, 211, 238, 0.3);
         }
 
         .capture-icon svg {
-            width: 20px;
-            height: 20px;
-            stroke: var(--blue-600);
+            width: 22px;
+            height: 22px;
+            stroke: white;
         }
 
         .capture-info h4 {
-            font-size: 0.875rem;
+            font-size: 0.9rem;
             font-weight: 600;
-            color: var(--gray-800);
-            margin-bottom: 2px;
+            color: var(--text-primary);
+            margin-bottom: 3px;
+            font-family: 'JetBrains Mono', monospace;
         }
 
         .capture-info p {
-            font-size: 0.75rem;
-            color: var(--gray-500);
+            font-size: 0.8rem;
+            color: var(--text-muted);
         }
 
         .capture-indicator {
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 12px 16px;
-            background: var(--green-500);
+            gap: 10px;
+            padding: 14px 20px;
+            background: var(--gradient-accent);
             color: white;
-            border-radius: 8px;
-            font-size: 0.875rem;
-            font-weight: 500;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            box-shadow: 0 4px 20px rgba(105, 219, 124, 0.4);
         }
 
         .capture-indicator svg {
-            width: 18px;
-            height: 18px;
+            width: 20px;
+            height: 20px;
+            animation: checkBounce 1s infinite;
+        }
+
+        @keyframes checkBounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
         }
 
         /* Sections */
         section {
-            padding: 80px 0;
+            padding: 100px 0;
+            position: relative;
         }
 
         .section-header {
             text-align: center;
-            max-width: 600px;
-            margin: 0 auto 48px;
+            max-width: 650px;
+            margin: 0 auto 60px;
         }
 
         .section-label {
             display: inline-block;
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: var(--blue-600);
+            font-size: 0.85rem;
+            font-weight: 700;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 12px;
+            letter-spacing: 0.1em;
+            margin-bottom: 16px;
         }
 
         .section-header h2 {
-            font-size: clamp(1.75rem, 3vw, 2.25rem);
+            font-size: clamp(2rem, 4vw, 2.75rem);
             font-weight: 700;
-            color: var(--gray-900);
-            margin-bottom: 16px;
+            color: var(--text-primary);
+            margin-bottom: 18px;
             letter-spacing: -0.02em;
         }
 
         .section-header p {
-            color: var(--gray-600);
-            font-size: 1.05rem;
+            color: var(--text-secondary);
+            font-size: 1.1rem;
         }
 
         /* Features Grid */
-        .features {
-            background: var(--gray-50);
-        }
-
         .features-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -475,45 +703,167 @@
         }
 
         .feature-card {
-            background: var(--white);
-            border: 1px solid var(--gray-200);
-            border-radius: 12px;
-            padding: 28px;
-            transition: box-shadow 0.2s;
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 32px;
+            transition: all 0.4s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--gradient-primary);
+            opacity: 0;
+            transition: opacity 0.3s;
         }
 
         .feature-card:hover {
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+            transform: translateY(-5px);
+            border-color: rgba(255, 107, 107, 0.3);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .feature-card:hover::before {
+            opacity: 1;
         }
 
         .feature-icon {
-            width: 44px;
-            height: 44px;
-            background: var(--blue-100);
-            border-radius: 10px;
+            width: 52px;
+            height: 52px;
+            background: var(--gradient-primary);
+            border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(255, 107, 107, 0.3);
         }
 
         .feature-icon svg {
-            width: 22px;
-            height: 22px;
-            stroke: var(--blue-600);
+            width: 26px;
+            height: 26px;
+            stroke: white;
         }
 
         .feature-card h3 {
-            font-size: 1rem;
+            font-size: 1.15rem;
             font-weight: 600;
-            color: var(--gray-900);
-            margin-bottom: 8px;
+            color: var(--text-primary);
+            margin-bottom: 10px;
         }
 
         .feature-card p {
-            font-size: 0.9rem;
-            color: var(--gray-600);
+            font-size: 0.95rem;
+            color: var(--text-secondary);
             line-height: 1.6;
+        }
+
+        /* Comparison Table */
+        .comparison-table {
+            max-width: 850px;
+            margin: 0 auto;
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .comparison-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 20px 28px;
+            text-align: left;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .comparison-table th {
+            background: rgba(255, 255, 255, 0.02);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .comparison-table th:not(:first-child),
+        .comparison-table td:not(:first-child) {
+            text-align: center;
+        }
+
+        .comparison-table td {
+            color: var(--text-secondary);
+        }
+
+        .comparison-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .comparison-table tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .check-icon {
+            color: var(--mint);
+            font-weight: 600;
+        }
+
+        .cross-icon {
+            color: var(--text-muted);
+        }
+
+        /* Keyboard Shortcuts */
+        .shortcuts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            max-width: 750px;
+            margin: 0 auto;
+        }
+
+        .shortcut-card {
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            padding: 22px;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            transition: all 0.3s;
+        }
+
+        .shortcut-card:hover {
+            border-color: var(--purple);
+            transform: translateY(-2px);
+        }
+
+        .shortcut-keys {
+            display: flex;
+            gap: 6px;
+        }
+
+        .key {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            box-shadow: 0 3px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        .shortcut-desc {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
         }
 
         /* Use Cases */
@@ -524,59 +874,53 @@
         }
 
         .use-case-card {
-            background: var(--white);
-            border: 1px solid var(--gray-200);
-            border-radius: 12px;
-            padding: 28px;
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 32px;
+            transition: all 0.3s;
+        }
+
+        .use-case-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
         }
 
         .use-case-icon {
-            width: 48px;
-            height: 48px;
-            background: var(--blue-50);
-            border-radius: 10px;
+            width: 56px;
+            height: 56px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 16px;
-            font-size: 1.5rem;
+            margin-bottom: 20px;
+            font-size: 1.75rem;
         }
 
         .use-case-card h3 {
-            font-size: 1.05rem;
+            font-size: 1.15rem;
             font-weight: 600;
-            color: var(--gray-900);
-            margin-bottom: 8px;
+            color: var(--text-primary);
+            margin-bottom: 10px;
         }
 
         .use-case-card p {
-            font-size: 0.9rem;
-            color: var(--gray-600);
+            font-size: 0.95rem;
+            color: var(--text-secondary);
             line-height: 1.6;
         }
 
         /* How It Works */
         .how-it-works {
-            background: var(--blue-600);
-            color: white;
-        }
-
-        .how-it-works .section-label {
-            color: var(--blue-200);
-        }
-
-        .how-it-works .section-header h2 {
-            color: white;
-        }
-
-        .how-it-works .section-header p {
-            color: var(--blue-100);
+            background: linear-gradient(180deg, rgba(151, 117, 250, 0.1) 0%, transparent 100%);
         }
 
         .steps-container {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 32px;
+            gap: 40px;
         }
 
         .step-card {
@@ -584,163 +928,137 @@
         }
 
         .step-number {
-            width: 48px;
-            height: 48px;
-            background: rgba(255, 255, 255, 0.15);
+            width: 60px;
+            height: 60px;
+            background: var(--gradient-secondary);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.25rem;
+            font-size: 1.5rem;
             font-weight: 700;
-            margin: 0 auto 20px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
+            margin: 0 auto 24px;
+            box-shadow: 0 4px 25px rgba(151, 117, 250, 0.4);
         }
 
         .step-card h3 {
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             font-weight: 600;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
+            color: var(--text-primary);
         }
 
         .step-card p {
-            font-size: 0.95rem;
-            color: var(--blue-100);
+            font-size: 1rem;
+            color: var(--text-secondary);
             line-height: 1.6;
         }
 
-        /* Installation */
-        .installation-content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 48px;
-            align-items: center;
+        /* Trust Section */
+        .trust-section {
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 48px;
+            margin: 80px auto;
+            max-width: 950px;
+            text-align: center;
         }
 
-        .install-steps {
-            list-style: none;
+        .trust-section h3 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 12px;
         }
 
-        .install-steps li {
+        .trust-section > p {
+            color: var(--text-secondary);
+            margin-bottom: 28px;
+        }
+
+        .trust-steps {
             display: flex;
-            gap: 16px;
-            margin-bottom: 24px;
-            align-items: flex-start;
+            gap: 28px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 28px;
         }
 
-        .step-icon {
-            width: 32px;
-            height: 32px;
-            background: var(--blue-100);
+        .trust-step {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+
+        .trust-step span:first-child {
+            width: 28px;
+            height: 28px;
+            background: var(--gradient-primary);
+            color: white;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 0.85rem;
             font-weight: 600;
-            color: var(--blue-600);
-            font-size: 0.875rem;
-            flex-shrink: 0;
         }
 
-        .install-steps h4 {
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--gray-900);
-            margin-bottom: 4px;
+        .trust-badges {
+            display: flex;
+            gap: 18px;
+            justify-content: center;
+            flex-wrap: wrap;
         }
 
-        .install-steps p {
-            font-size: 0.9rem;
-            color: var(--gray-600);
-        }
-
-        .install-visual {
-            background: var(--gray-50);
-            border: 1px solid var(--gray-200);
-            border-radius: 12px;
-            padding: 32px;
-            text-align: center;
-        }
-
-        .install-visual img {
-            max-width: 100%;
-            height: auto;
-        }
-
-        /* Settings Preview */
-        .settings-section {
-            background: var(--gray-50);
-        }
-
-        .settings-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 48px;
-            align-items: center;
-        }
-
-        .settings-content h2 {
-            font-size: 1.75rem;
-            font-weight: 700;
-            color: var(--gray-900);
-            margin-bottom: 16px;
-        }
-
-        .settings-content p {
-            color: var(--gray-600);
-            margin-bottom: 24px;
-        }
-
-        .settings-list {
-            list-style: none;
-        }
-
-        .settings-list li {
+        .trust-badge {
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 12px 0;
-            border-bottom: 1px solid var(--gray-200);
-            font-size: 0.95rem;
-            color: var(--gray-700);
+            gap: 10px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
         }
 
-        .settings-list svg {
+        .trust-badge svg {
             width: 20px;
             height: 20px;
-            stroke: var(--blue-600);
-        }
-
-        .settings-visual {
-            background: var(--white);
-            border: 1px solid var(--gray-200);
-            border-radius: 12px;
-            padding: 24px;
+            stroke: var(--mint);
         }
 
         /* FAQ */
         .faq-container {
-            max-width: 700px;
+            max-width: 750px;
             margin: 0 auto;
         }
 
         .faq-item {
-            border: 1px solid var(--gray-200);
-            border-radius: 10px;
-            margin-bottom: 12px;
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            margin-bottom: 14px;
             overflow: hidden;
-            background: var(--white);
+            transition: all 0.3s;
+        }
+
+        .faq-item:hover {
+            border-color: rgba(255, 255, 255, 0.15);
         }
 
         .faq-question {
             width: 100%;
-            padding: 20px 24px;
+            padding: 22px 28px;
             background: none;
             border: none;
             text-align: left;
-            font-size: 1rem;
+            font-size: 1.05rem;
             font-weight: 600;
-            color: var(--gray-900);
+            color: var(--text-primary);
             cursor: pointer;
             display: flex;
             justify-content: space-between;
@@ -749,14 +1067,15 @@
         }
 
         .faq-question svg {
-            width: 20px;
-            height: 20px;
-            stroke: var(--gray-400);
+            width: 22px;
+            height: 22px;
+            stroke: var(--text-muted);
             transition: transform 0.3s;
         }
 
         .faq-item.active .faq-question svg {
             transform: rotate(180deg);
+            stroke: var(--coral);
         }
 
         .faq-answer {
@@ -766,98 +1085,67 @@
         }
 
         .faq-answer-inner {
-            padding: 0 24px 20px;
-            color: var(--gray-600);
-            font-size: 0.95rem;
+            padding: 0 28px 22px;
+            color: var(--text-secondary);
+            font-size: 1rem;
             line-height: 1.7;
         }
 
         .faq-item.active .faq-answer {
-            max-height: 300px;
-        }
-
-        /* Technical */
-        .tech-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-        }
-
-        .tech-card {
-            background: var(--white);
-            border: 1px solid var(--gray-200);
-            border-radius: 10px;
-            padding: 24px;
-            text-align: center;
-        }
-
-        .tech-card h4 {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: var(--gray-800);
-            margin-bottom: 6px;
-        }
-
-        .tech-card p {
-            font-size: 0.8rem;
-            color: var(--gray-500);
+            max-height: 350px;
         }
 
         /* Changelog */
-        .changelog {
-            background: var(--gray-50);
-        }
-
         .changelog-container {
-            max-width: 700px;
+            max-width: 750px;
             margin: 0 auto;
         }
 
         .changelog-item {
-            background: var(--white);
-            border: 1px solid var(--gray-200);
-            border-radius: 12px;
-            padding: 28px;
-            margin-bottom: 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 24px;
         }
 
         .changelog-version {
             display: flex;
             align-items: center;
-            gap: 12px;
-            margin-bottom: 12px;
+            gap: 14px;
+            margin-bottom: 16px;
             flex-wrap: wrap;
         }
 
         .version-tag {
-            background: var(--blue-600);
+            background: var(--gradient-primary);
             color: white;
-            padding: 4px 12px;
+            padding: 6px 14px;
             border-radius: 100px;
-            font-size: 0.8rem;
+            font-size: 0.85rem;
             font-weight: 600;
         }
 
         .version-date {
-            color: var(--gray-500);
-            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
         }
 
         .version-badge {
-            background: var(--green-500);
-            color: white;
-            padding: 4px 10px;
+            background: var(--mint);
+            color: #0a0a0f;
+            padding: 5px 12px;
             border-radius: 100px;
-            font-size: 0.7rem;
-            font-weight: 600;
+            font-size: 0.75rem;
+            font-weight: 700;
             text-transform: uppercase;
         }
 
         .changelog-title {
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             font-weight: 600;
-            color: var(--gray-900);
-            margin-bottom: 16px;
+            color: var(--text-primary);
+            margin-bottom: 18px;
         }
 
         .changelog-features {
@@ -867,128 +1155,81 @@
         .changelog-features li {
             display: flex;
             align-items: flex-start;
-            gap: 10px;
-            padding: 8px 0;
-            font-size: 0.9rem;
-            color: var(--gray-700);
+            gap: 12px;
+            padding: 10px 0;
+            font-size: 0.95rem;
+            color: var(--text-secondary);
         }
 
         .changelog-features svg {
-            width: 18px;
-            height: 18px;
-            stroke: var(--green-500);
+            width: 20px;
+            height: 20px;
+            stroke: var(--mint);
             flex-shrink: 0;
             margin-top: 2px;
         }
 
         .feature-tag {
             display: inline-block;
-            padding: 2px 8px;
-            border-radius: 4px;
+            padding: 3px 10px;
+            border-radius: 6px;
             font-size: 0.7rem;
-            font-weight: 600;
+            font-weight: 700;
             text-transform: uppercase;
-            margin-right: 6px;
+            margin-right: 8px;
         }
 
         .feature-tag.new {
-            background: var(--blue-100);
-            color: var(--blue-700);
+            background: rgba(34, 211, 238, 0.2);
+            color: var(--cyan);
         }
 
         .feature-tag.improved {
-            background: #fef3c7;
-            color: #92400e;
+            background: rgba(255, 169, 77, 0.2);
+            color: var(--orange);
         }
 
         .feature-tag.fixed {
-            background: #dcfce7;
-            color: var(--green-600);
+            background: rgba(105, 219, 124, 0.2);
+            color: var(--mint);
         }
 
-        /* Trust Section */
-        .trust-section {
-            background: var(--blue-50);
-            border: 1px solid var(--blue-100);
-            border-radius: 16px;
+        /* Privacy */
+        .privacy-content {
+            max-width: 750px;
+            margin: 0 auto;
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
             padding: 40px;
-            margin: 60px auto;
-            max-width: 900px;
         }
 
-        .trust-section h3 {
-            font-size: 1.25rem;
+        .privacy-content h3 {
+            font-size: 1.15rem;
             font-weight: 600;
-            color: var(--gray-900);
-            margin-bottom: 8px;
-            text-align: center;
+            color: var(--text-primary);
+            margin: 28px 0 14px;
         }
 
-        .trust-section > p {
-            color: var(--gray-600);
-            text-align: center;
-            margin-bottom: 24px;
+        .privacy-content h3:first-child {
+            margin-top: 0;
         }
 
-        .trust-steps {
-            display: flex;
-            gap: 24px;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-bottom: 24px;
+        .privacy-content p {
+            color: var(--text-secondary);
+            margin-bottom: 14px;
+            line-height: 1.7;
         }
 
-        .trust-step {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.9rem;
-            color: var(--gray-700);
-        }
-
-        .trust-step span:first-child {
-            width: 24px;
-            height: 24px;
-            background: var(--blue-600);
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        .trust-badges {
-            display: flex;
-            gap: 16px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .trust-badge {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: var(--white);
-            border: 1px solid var(--gray-200);
-            padding: 10px 16px;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            color: var(--gray-700);
-        }
-
-        .trust-badge svg {
-            width: 18px;
-            height: 18px;
-            stroke: var(--green-500);
+        .privacy-content a {
+            color: var(--cyan);
         }
 
         /* Footer */
         footer {
-            background: var(--gray-900);
-            color: var(--gray-400);
-            padding: 48px 0 32px;
+            background: rgba(0, 0, 0, 0.3);
+            border-top: 1px solid var(--glass-border);
+            padding: 50px 0 36px;
         }
 
         .footer-content {
@@ -996,49 +1237,56 @@
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 24px;
+            gap: 28px;
         }
 
         .footer-logo {
             display: flex;
             align-items: center;
-            gap: 10px;
-            color: white;
+            gap: 12px;
+            color: var(--text-primary);
             font-weight: 600;
         }
 
         .footer-logo .logo-icon {
-            width: 32px;
-            height: 32px;
+            width: 36px;
+            height: 36px;
         }
 
         .footer-logo .logo-icon svg {
-            width: 18px;
-            height: 18px;
+            width: 20px;
+            height: 20px;
         }
 
         .footer-links {
             display: flex;
-            gap: 24px;
+            gap: 28px;
             list-style: none;
         }
 
         .footer-links a {
-            color: var(--gray-400);
+            color: var(--text-muted);
             text-decoration: none;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
+            transition: color 0.2s;
         }
 
         .footer-links a:hover {
-            color: white;
+            color: var(--text-primary);
         }
 
         .footer-bottom {
-            margin-top: 32px;
-            padding-top: 24px;
-            border-top: 1px solid var(--gray-800);
+            margin-top: 36px;
+            padding-top: 28px;
+            border-top: 1px solid var(--glass-border);
             text-align: center;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .footer-bottom a {
+            color: var(--coral);
+            text-decoration: none;
         }
 
         /* Back to Top */
@@ -1046,9 +1294,9 @@
             position: fixed;
             bottom: 32px;
             right: 32px;
-            width: 44px;
-            height: 44px;
-            background: var(--blue-600);
+            width: 50px;
+            height: 50px;
+            background: var(--gradient-primary);
             color: white;
             border: none;
             border-radius: 50%;
@@ -1059,6 +1307,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            box-shadow: 0 4px 20px rgba(255, 107, 107, 0.4);
         }
 
         .back-to-top.visible {
@@ -1067,22 +1316,19 @@
         }
 
         .back-to-top:hover {
-            background: var(--blue-700);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(255, 107, 107, 0.5);
         }
 
         .back-to-top svg {
-            width: 20px;
-            height: 20px;
+            width: 22px;
+            height: 22px;
         }
 
         /* Responsive */
         @media (max-width: 1024px) {
             .features-grid,
             .use-cases-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .tech-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
         }
@@ -1101,16 +1347,16 @@
             }
 
             .hero {
-                padding: 120px 0 60px;
+                padding: 140px 0 80px;
             }
 
             h1 {
-                font-size: 2rem;
+                font-size: 2.5rem;
             }
 
             .demo-content {
                 grid-template-columns: 1fr;
-                padding: 24px;
+                padding: 28px;
             }
 
             .features-grid,
@@ -1119,34 +1365,38 @@
                 grid-template-columns: 1fr;
             }
 
-            .installation-content,
-            .settings-grid {
+            .shortcuts-grid {
                 grid-template-columns: 1fr;
             }
 
-            .tech-grid {
-                grid-template-columns: 1fr;
+            .comparison-table {
+                overflow-x: auto;
             }
 
             section {
-                padding: 60px 0;
+                padding: 70px 0;
             }
 
             .trust-section {
-                padding: 28px 20px;
+                padding: 32px 24px;
             }
 
             .footer-content {
                 flex-direction: column;
                 text-align: center;
             }
+
+            .download-options {
+                flex-direction: column;
+                align-items: center;
+            }
         }
 
         /* Animations */
         .animate-on-scroll {
             opacity: 0;
-            transform: translateY(20px);
-            transition: opacity 0.5s ease, transform 0.5s ease;
+            transform: translateY(30px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
         }
 
         .animate-on-scroll.visible {
@@ -1156,7 +1406,9 @@
     </style>
 </head>
 <body>
-    <header id="header">
+    <div class="bg-gradient"></div>
+
+    <header>
         <div class="container">
             <div class="header-inner">
                 <a href="#" class="logo">
@@ -1200,17 +1452,40 @@
                 <div class="hero-content">
                     <div class="badge">
                         <span class="badge-dot"></span>
-                        Windows App • v2.1
+                        v2.1.0 • Now with AI-Powered Duplicate Detection 🧠
                     </div>
-                    <h1>Automatic PDF <span class="highlight">Screenshots</span> for Adobe Acrobat</h1>
-                    <p class="hero-subtitle">Capture every page as you navigate through PDF documents. Perfect for compliance workflows, documentation, and audit trails.</p>
+                    <h1>Stop Taking <span class="gradient-text">Manual Screenshots</span> Like It's 1999</h1>
+                    <p class="hero-subtitle">Your PDF pages capture themselves while you casually scroll through Adobe Acrobat. It's like having a tiny, <strong>obsessive assistant</strong> who never takes a coffee break.</p>
+                    
+                    <div class="system-req">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                        Windows 10/11 • 64-bit • Zero admin privileges needed
+                    </div>
+                    
                     <div class="cta-group">
-                        <a href="PDFScreenshotTool_Setup.exe" class="btn btn-primary" download>
+                        <a href="PDFScreenshotTool.exe" class="btn btn-primary" download>
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                            Download Installer
+                            Download Now — It's Free
                         </a>
                         <a href="#features" class="btn btn-secondary">
-                            Learn More
+                            See What It Does
+                        </a>
+                    </div>
+                    
+                    <div class="download-info">
+                        <span>📦 ~264 MB (yes, it's chunky — blame Python)</span>
+                        <span>🔐 <a href="https://www.virustotal.com" target="_blank">Scan on VirusTotal</a></span>
+                        <span>📋 <a href="https://github.com/draphael123/adobe-reader/releases/latest" target="_blank">Release Notes</a></span>
+                    </div>
+                    
+                    <div class="download-options">
+                        <a href="PDFScreenshotTool.exe" class="download-option" download>
+                            <strong>⚡ Installer (.exe)</strong>
+                            <small>One-click setup magic</small>
+                        </a>
+                        <a href="PDFScreenshotTool.zip" class="download-option" download>
+                            <strong>📁 Portable (.zip)</strong>
+                            <small>For the commitment-phobic</small>
                         </a>
                     </div>
                 </div>
@@ -1223,7 +1498,7 @@
                                 <div class="demo-dot"></div>
                                 <div class="demo-dot"></div>
                             </div>
-                            <div class="demo-title">Document.pdf - Adobe Acrobat</div>
+                            <div class="demo-title">TotallyImportantDocument.pdf — Adobe Acrobat</div>
                         </div>
                         <div class="demo-content">
                             <div class="demo-pdf">
@@ -1233,6 +1508,7 @@
                                 <div class="demo-line"></div>
                                 <div class="demo-line"></div>
                                 <div class="demo-line"></div>
+                                <div class="demo-page-indicator">Page <span id="pageNum">1</span> of 47</div>
                             </div>
                             <div class="demo-capture-area">
                                 <div class="capture-preview">
@@ -1241,7 +1517,7 @@
                                     </div>
                                     <div class="capture-info">
                                         <h4>Page_001.png</h4>
-                                        <p>Captured just now</p>
+                                        <p>✨ Captured automagically</p>
                                     </div>
                                 </div>
                                 <div class="capture-preview">
@@ -1250,12 +1526,21 @@
                                     </div>
                                     <div class="capture-info">
                                         <h4>Page_002.png</h4>
-                                        <p>Captured just now</p>
+                                        <p>🚀 You didn't lift a finger</p>
+                                    </div>
+                                </div>
+                                <div class="capture-preview">
+                                    <div class="capture-icon">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                                    </div>
+                                    <div class="capture-info">
+                                        <h4>Page_003.png</h4>
+                                        <p>🎯 This is the way</p>
                                     </div>
                                 </div>
                                 <div class="capture-indicator">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                    Auto-capturing enabled
+                                    Auto-capture: ON (obviously)
                                 </div>
                             </div>
                         </div>
@@ -1269,51 +1554,150 @@
             <div class="container">
                 <div class="section-header animate-on-scroll">
                     <span class="section-label">Features</span>
-                    <h2>Everything You Need</h2>
-                    <p>A focused tool that does one thing exceptionally well.</p>
+                    <h2>Why You'll Love This Thing</h2>
+                    <p>It does exactly one thing, but it does it ridiculously well.</p>
                 </div>
                 <div class="features-grid">
                     <div class="feature-card animate-on-scroll">
                         <div class="feature-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                         </div>
-                        <h3>Automatic Capture</h3>
-                        <p>Screenshots are taken automatically when you scroll or navigate to a new page in your PDF.</p>
+                        <h3>Laziness-Enabled Capture</h3>
+                        <p>Screenshots happen automatically when you navigate pages. Your only job is to scroll. Revolutionary, we know.</p>
                     </div>
                     <div class="feature-card animate-on-scroll">
                         <div class="feature-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
                         </div>
-                        <h3>Organized by Document</h3>
-                        <p>Each PDF gets its own folder, keeping your captures organized and easy to find.</p>
+                        <h3>OCD-Level Organization</h3>
+                        <p>Each PDF gets its own folder. Files named properly. Chaos? Never heard of her.</p>
                     </div>
                     <div class="feature-card animate-on-scroll">
                         <div class="feature-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
                         </div>
-                        <h3>Smart Detection</h3>
-                        <p>Duplicate pages are automatically skipped to save storage space.</p>
+                        <h3>AI Brain for Duplicates</h3>
+                        <p>Uses perceptual hashing (fancy AI stuff) to skip pages that look the same. Saves disk space AND your sanity.</p>
                     </div>
                     <div class="feature-card animate-on-scroll">
                         <div class="feature-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                         </div>
-                        <h3>Runs in Background</h3>
-                        <p>Sits quietly in your system tray, capturing pages while you work.</p>
+                        <h3>Sneaky Background Mode</h3>
+                        <p>Sits in your system tray like a digital ninja. You'll forget it exists until you need those screenshots.</p>
                     </div>
                     <div class="feature-card animate-on-scroll">
                         <div class="feature-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
                         </div>
-                        <h3>Customizable</h3>
-                        <p>Choose PNG or JPEG format, set quality, and configure capture behavior.</p>
+                        <h3>Absurdly Customizable</h3>
+                        <p>PNG, JPEG, WebP. Quality sliders. Delays. Thresholds. It's like a settings buffet for control freaks.</p>
                     </div>
                     <div class="feature-card animate-on-scroll">
                         <div class="feature-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
                         </div>
-                        <h3>Manual Hotkey</h3>
-                        <p>Press Ctrl+Shift+S anytime to capture the current view manually.</p>
+                        <h3>Keyboard Shortcuts</h3>
+                        <p>Because clicking is for peasants. Ctrl+Shift+S to capture. Feel like a hacker. We won't judge.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Comparison Section -->
+        <section class="comparison" id="comparison">
+            <div class="container">
+                <div class="section-header animate-on-scroll">
+                    <span class="section-label">The Truth Hurts</span>
+                    <h2>Your Life Before vs After</h2>
+                    <p>Spoiler: "After" is objectively better.</p>
+                </div>
+                <div class="comparison-table animate-on-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>The Task</th>
+                                <th>😩 Manual Mode</th>
+                                <th>😎 With This Tool</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Time per page</td>
+                                <td>5-10 seconds of suffering</td>
+                                <td class="check-icon">Instant ✓</td>
+                            </tr>
+                            <tr>
+                                <td>Keyboard gymnastics</td>
+                                <td>PrtSc → Paste → Save → Repeat → Cry</td>
+                                <td class="check-icon">Zero ✓</td>
+                            </tr>
+                            <tr>
+                                <td>File naming</td>
+                                <td>"screenshot(47).png" chaos</td>
+                                <td class="check-icon">Beautiful auto-naming ✓</td>
+                            </tr>
+                            <tr>
+                                <td>Duplicate handling</td>
+                                <td class="cross-icon">Your problem ❌</td>
+                                <td class="check-icon">AI-powered detection ✓</td>
+                            </tr>
+                            <tr>
+                                <td>100-page document</td>
+                                <td>~20 min (+ existential crisis)</td>
+                                <td class="check-icon">~2 min (just scroll) ✓</td>
+                            </tr>
+                            <tr>
+                                <td>Your sanity</td>
+                                <td class="cross-icon">Questionable ❌</td>
+                                <td class="check-icon">Intact ✓</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Keyboard Shortcuts -->
+        <section class="shortcuts" id="shortcuts">
+            <div class="container">
+                <div class="section-header animate-on-scroll">
+                    <span class="section-label">Power User Zone</span>
+                    <h2>Keyboard Shortcuts</h2>
+                    <p>Memorize these and impress absolutely no one at parties.</p>
+                </div>
+                <div class="shortcuts-grid">
+                    <div class="shortcut-card animate-on-scroll">
+                        <div class="shortcut-keys">
+                            <span class="key">Ctrl</span>
+                            <span class="key">Shift</span>
+                            <span class="key">S</span>
+                        </div>
+                        <span class="shortcut-desc">Force a screenshot (for impatient people)</span>
+                    </div>
+                    <div class="shortcut-card animate-on-scroll">
+                        <div class="shortcut-keys">
+                            <span class="key">Ctrl</span>
+                            <span class="key">Shift</span>
+                            <span class="key">P</span>
+                        </div>
+                        <span class="shortcut-desc">Pause/Resume (taking a break? Same.)</span>
+                    </div>
+                    <div class="shortcut-card animate-on-scroll">
+                        <div class="shortcut-keys">
+                            <span class="key">Ctrl</span>
+                            <span class="key">Shift</span>
+                            <span class="key">O</span>
+                        </div>
+                        <span class="shortcut-desc">Open screenshots folder (reveal the goods)</span>
+                    </div>
+                    <div class="shortcut-card animate-on-scroll">
+                        <div class="shortcut-keys">
+                            <span class="key">Ctrl</span>
+                            <span class="key">Shift</span>
+                            <span class="key">,</span>
+                        </div>
+                        <span class="shortcut-desc">Open settings (tweak ALL the things)</span>
                     </div>
                 </div>
             </div>
@@ -1323,40 +1707,40 @@
         <section class="use-cases" id="use-cases">
             <div class="container">
                 <div class="section-header animate-on-scroll">
-                    <span class="section-label">Use Cases</span>
-                    <h2>Perfect For Every Scenario</h2>
-                    <p>Professionals across industries rely on PDF Screenshot Tool.</p>
+                    <span class="section-label">Who Uses This?</span>
+                    <h2>Actual Humans With Real Jobs</h2>
+                    <p>You're in good company. Probably.</p>
                 </div>
                 <div class="use-cases-grid">
                     <div class="use-case-card animate-on-scroll">
                         <div class="use-case-icon">📋</div>
-                        <h3>Compliance & Auditing</h3>
-                        <p>Create visual audit trails for regulatory requirements. Document exactly what was reviewed.</p>
+                        <h3>Compliance Warriors</h3>
+                        <p>Auditors love paper trails. Give them screenshot trails instead. Same energy, less trees.</p>
                     </div>
                     <div class="use-case-card animate-on-scroll">
                         <div class="use-case-icon">📚</div>
-                        <h3>Research & Education</h3>
-                        <p>Capture reference materials from academic papers and textbooks for easy citation.</p>
+                        <h3>Eternal Students</h3>
+                        <p>Capture textbook pages, cite them properly, ace your papers. We don't judge your study habits.</p>
                     </div>
                     <div class="use-case-card animate-on-scroll">
                         <div class="use-case-icon">⚖️</div>
-                        <h3>Legal Documentation</h3>
-                        <p>Document contract reviews and legal filings with timestamped screenshots.</p>
+                        <h3>Legal Eagles</h3>
+                        <p>Document every contract page. CYA has never been this automated.</p>
                     </div>
                     <div class="use-case-card animate-on-scroll">
                         <div class="use-case-icon">🏥</div>
-                        <h3>Healthcare Records</h3>
-                        <p>Maintain visual records of reviewed medical documents for compliance.</p>
+                        <h3>Healthcare Heroes</h3>
+                        <p>Medical record reviews with timestamps. HIPAA compliance made slightly less painful.</p>
                     </div>
                     <div class="use-case-card animate-on-scroll">
                         <div class="use-case-icon">💼</div>
-                        <h3>Business Workflows</h3>
-                        <p>Document approvals, reviews, and sign-offs in your business processes.</p>
+                        <h3>Corporate Drones</h3>
+                        <p>Document approvals, sign-offs, and "per my last email" evidence. We see you.</p>
                     </div>
                     <div class="use-case-card animate-on-scroll">
                         <div class="use-case-icon">🎨</div>
-                        <h3>Design Reference</h3>
-                        <p>Capture design specifications and mockups for your creative projects.</p>
+                        <h3>Design Perfectionists</h3>
+                        <p>Capture design specs page by page. Your future self will thank you. Maybe.</p>
                     </div>
                 </div>
             </div>
@@ -1366,25 +1750,25 @@
         <section class="how-it-works" id="how-it-works">
             <div class="container">
                 <div class="section-header animate-on-scroll">
-                    <span class="section-label">How It Works</span>
-                    <h2>Three Simple Steps</h2>
-                    <p>Get started in under a minute.</p>
+                    <span class="section-label">Effort Level: Minimal</span>
+                    <h2>Three Steps. That's It.</h2>
+                    <p>If you can count to three, you can use this tool.</p>
                 </div>
                 <div class="steps-container">
                     <div class="step-card animate-on-scroll">
                         <div class="step-number">1</div>
                         <h3>Download & Install</h3>
-                        <p>Run the installer and follow the simple setup wizard. No complex configuration needed.</p>
+                        <p>Click download, run installer, click Next a few times. We believe in you.</p>
                     </div>
                     <div class="step-card animate-on-scroll">
                         <div class="step-number">2</div>
-                        <h3>Open Your PDF</h3>
-                        <p>Open any PDF document in Adobe Acrobat Reader or Pro. The app detects it automatically.</p>
+                        <h3>Open a PDF</h3>
+                        <p>Fire up Adobe Acrobat with literally any PDF. The app auto-detects it like magic.</p>
                     </div>
                     <div class="step-card animate-on-scroll">
                         <div class="step-number">3</div>
-                        <h3>Navigate & Capture</h3>
-                        <p>Simply scroll or use Page Down. Screenshots are captured and saved automatically.</p>
+                        <h3>Scroll & Chill</h3>
+                        <p>Navigate your document normally. Screenshots happen in the background. You're done. Go get coffee.</p>
                     </div>
                 </div>
             </div>
@@ -1393,30 +1777,30 @@
         <!-- Trust Section -->
         <div class="container">
             <div class="trust-section animate-on-scroll">
-                <h3>Windows Security Note</h3>
-                <p>You may see a Windows SmartScreen warning because this is a new application. Here's how to proceed:</p>
+                <h3>⚠️ Windows Might Freak Out (It's Fine)</h3>
+                <p>SmartScreen may warn you because we're new kids on the block. Here's the secret handshake:</p>
                 <div class="trust-steps">
                     <div class="trust-step">
                         <span>1</span>
-                        Click "More info"
+                        Click "More info" (it's tiny, we know)
                     </div>
                     <div class="trust-step">
                         <span>2</span>
-                        Click "Run anyway"
+                        Click "Run anyway" (live dangerously)
                     </div>
                 </div>
                 <div class="trust-badges">
                     <div class="trust-badge">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                        No malware
+                        Zero malware (pinky promise)
                     </div>
                     <div class="trust-badge">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                        Open source
+                        Open source (read the code yourself)
                     </div>
                     <div class="trust-badge">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                        No data collection
+                        No data collection (we don't care about your PDFs)
                     </div>
                 </div>
             </div>
@@ -1426,62 +1810,73 @@
         <section class="faq" id="faq">
             <div class="container">
                 <div class="section-header animate-on-scroll">
-                    <span class="section-label">FAQ</span>
-                    <h2>Frequently Asked Questions</h2>
+                    <span class="section-label">Questions?</span>
+                    <h2>Frequently Asked Stuff</h2>
                 </div>
                 <div class="faq-container">
                     <div class="faq-item animate-on-scroll">
                         <button class="faq-question">
-                            Which PDF readers are supported?
+                            Does it work with [insert PDF reader here]?
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
                         </button>
                         <div class="faq-answer">
                             <div class="faq-answer-inner">
-                                PDF Screenshot Tool works with Adobe Acrobat Reader DC and Adobe Acrobat Pro. Other PDF readers are not currently supported.
+                                Adobe Acrobat Reader and Adobe Acrobat Pro only. We're exclusive like that. Chrome PDF viewer? Nope. Foxit? Nope. That random PDF reader from 2007? Definitely nope.
                             </div>
                         </div>
                     </div>
                     <div class="faq-item animate-on-scroll">
                         <button class="faq-question">
-                            Where are screenshots saved?
+                            Where do my screenshots go?
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
                         </button>
                         <div class="faq-answer">
                             <div class="faq-answer-inner">
-                                By default, screenshots are saved to Documents/PDF Screenshots. You can change this location in the settings.
+                                Documents/PDF Screenshots by default. But you can change it to literally anywhere. Your desktop? Sure. A folder called "Definitely Not Screenshots"? We don't judge.
                             </div>
                         </div>
                     </div>
                     <div class="faq-item animate-on-scroll">
                         <button class="faq-question">
-                            Does it work with password-protected PDFs?
+                            What about password-protected PDFs?
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
                         </button>
                         <div class="faq-answer">
                             <div class="faq-answer-inner">
-                                Yes, as long as you can view the PDF in Adobe Acrobat, the tool can capture screenshots of it.
+                                If YOU can see it in Acrobat, WE can capture it. We're not hackers — we just screenshot what's on your screen. It's basically a fancy Print Screen.
                             </div>
                         </div>
                     </div>
                     <div class="faq-item animate-on-scroll">
                         <button class="faq-question">
-                            Is my data sent anywhere?
+                            Are you spying on my PDFs? 👀
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
                         </button>
                         <div class="faq-answer">
                             <div class="faq-answer-inner">
-                                No. PDF Screenshot Tool runs entirely on your computer. No data is collected or transmitted. The only network request is the optional update check to GitHub.
+                                Hard no. Everything stays on your computer. The only internet connection is checking for updates (which you can disable). We genuinely don't want to know what's in your tax returns.
                             </div>
                         </div>
                     </div>
                     <div class="faq-item animate-on-scroll">
                         <button class="faq-question">
-                            Can I use this for commercial purposes?
+                            How does the "AI duplicate detection" work?
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
                         </button>
                         <div class="faq-answer">
                             <div class="faq-answer-inner">
-                                Yes, the tool is free for both personal and commercial use.
+                                We use perceptual hashing (pHash) — it's like facial recognition but for pages. Even if your cursor moved or you scrolled slightly, it knows it's the same page. Pretty neat, honestly.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="faq-item animate-on-scroll">
+                        <button class="faq-question">
+                            Why is the file so big?
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                        </button>
+                        <div class="faq-answer">
+                            <div class="faq-answer-inner">
+                                Python + all its libraries = thicc boi. We pack NumPy, SciPy, Pillow, and more into one executable. It's like a digital turducken. But hey, at least it works offline!
                             </div>
                         </div>
                     </div>
@@ -1493,9 +1888,9 @@
         <section class="changelog" id="changelog">
             <div class="container">
                 <div class="section-header animate-on-scroll">
-                    <span class="section-label">Changelog</span>
-                    <h2>What's New</h2>
-                    <p>Stay updated with the latest features and improvements.</p>
+                    <span class="section-label">What's New</span>
+                    <h2>Changelog</h2>
+                    <p>The thrilling saga of bug fixes and features.</p>
                 </div>
                 <div class="changelog-container">
                     <div class="changelog-item animate-on-scroll">
@@ -1504,27 +1899,27 @@
                             <span class="version-date">January 2026</span>
                             <span class="version-badge">Latest</span>
                         </div>
-                        <h4 class="changelog-title">Auto-Update & Advanced Settings</h4>
+                        <h4 class="changelog-title">🧠 The "Big Brain" Update</h4>
                         <ul class="changelog-features">
                             <li>
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                <span><span class="feature-tag new">New</span>Automatic update checking</span>
+                                <span><span class="feature-tag new">New</span>Perceptual hashing for smart duplicate detection</span>
                             </li>
                             <li>
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                <span><span class="feature-tag new">New</span>One-click download and install</span>
+                                <span><span class="feature-tag new">New</span>Configurable similarity threshold (for the paranoid)</span>
                             </li>
                             <li>
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                <span><span class="feature-tag new">New</span>Advanced settings with tabs</span>
+                                <span><span class="feature-tag new">New</span>Capture count in tray tooltip (dopamine hits!)</span>
                             </li>
                             <li>
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                <span><span class="feature-tag new">New</span>Image processing options</span>
+                                <span><span class="feature-tag new">New</span>"View Last Capture" menu option</span>
                             </li>
                             <li>
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                <span><span class="feature-tag fixed">Fixed</span>PDF detection reliability</span>
+                                <span><span class="feature-tag improved">Improved</span>First-run tutorial (less confusing now)</span>
                             </li>
                         </ul>
                     </div>
@@ -1534,11 +1929,15 @@
                             <span class="version-tag">v2.0.0</span>
                             <span class="version-date">January 2026</span>
                         </div>
-                        <h4 class="changelog-title">Major Feature Update</h4>
+                        <h4 class="changelog-title">🚀 The "Actually Useful" Update</h4>
                         <ul class="changelog-features">
                             <li>
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                <span><span class="feature-tag new">New</span>Statistics dashboard</span>
+                                <span><span class="feature-tag new">New</span>Auto-update system (less manual downloading)</span>
+                            </li>
+                            <li>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                                <span><span class="feature-tag new">New</span>Statistics dashboard (for data nerds)</span>
                             </li>
                             <li>
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
@@ -1548,38 +1947,31 @@
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
                                 <span><span class="feature-tag new">New</span>Batch export to ZIP/PDF</span>
                             </li>
-                            <li>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                <span><span class="feature-tag new">New</span>Pause/Resume hotkey</span>
-                            </li>
                         </ul>
                     </div>
+                </div>
+            </div>
+        </section>
 
-                    <div class="changelog-item animate-on-scroll">
-                        <div class="changelog-version">
-                            <span class="version-tag">v1.0.0</span>
-                            <span class="version-date">January 2026</span>
-                        </div>
-                        <h4 class="changelog-title">Initial Release</h4>
-                        <ul class="changelog-features">
-                            <li>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                <span>Automatic screenshot capture</span>
-                            </li>
-                            <li>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                <span>System tray integration</span>
-                            </li>
-                            <li>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                <span>Manual capture hotkey</span>
-                            </li>
-                            <li>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                <span>Duplicate detection</span>
-                            </li>
-                        </ul>
-                    </div>
+        <!-- Privacy Policy -->
+        <section class="privacy" id="privacy">
+            <div class="container">
+                <div class="section-header animate-on-scroll">
+                    <span class="section-label">Legal Stuff</span>
+                    <h2>Privacy Policy</h2>
+                </div>
+                <div class="privacy-content animate-on-scroll">
+                    <h3>TL;DR: We Don't Collect Anything</h3>
+                    <p>Seriously. This app runs entirely on your computer. We have no servers. We don't see your screenshots. We don't know you exist. It's actually a bit lonely for us.</p>
+                    
+                    <h3>The Longer Version (for lawyers)</h3>
+                    <p>The only network request is an optional check for updates, which pings GitHub's API. You can disable this. We don't track you, we don't analyze your usage, we don't sell your data (because we don't have any).</p>
+                    
+                    <h3>Your Screenshots</h3>
+                    <p>Stored locally on YOUR computer, in a folder YOU choose. We couldn't access them even if we wanted to (which we don't).</p>
+                    
+                    <h3>Open Source = Trust</h3>
+                    <p>Don't believe us? <a href="https://github.com/draphael123/adobe-reader" target="_blank">Read the entire source code</a>. It's all there. We literally cannot hide anything.</p>
                 </div>
             </div>
         </section>
@@ -1599,11 +1991,12 @@
                     <li><a href="#features">Features</a></li>
                     <li><a href="#faq">FAQ</a></li>
                     <li><a href="#changelog">Changelog</a></li>
+                    <li><a href="#privacy">Privacy</a></li>
                     <li><a href="https://github.com/draphael123/adobe-reader" target="_blank">GitHub</a></li>
                 </ul>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2026 PDF Screenshot Tool. Free and open source.</p>
+                <p>Built with 🔥 by <a href="https://github.com/draphael123">Daniel Raphael</a> • Free forever • No strings attached</p>
             </div>
         </div>
     </footer>
@@ -1681,6 +2074,14 @@
         document.querySelectorAll('.animate-on-scroll').forEach(el => {
             observer.observe(el);
         });
+
+        // Animated page counter in demo
+        const pageNum = document.getElementById('pageNum');
+        let currentPage = 1;
+        setInterval(() => {
+            currentPage = currentPage >= 47 ? 1 : currentPage + 1;
+            pageNum.textContent = currentPage;
+        }, 800);
     </script>
 </body>
 </html>

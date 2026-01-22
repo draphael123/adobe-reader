@@ -3,8 +3,11 @@ build/
 public/
 *.spec.bak
 
-# Keep dist/ and root exe/zip for Vercel deployment
-# dist/  (commented out - needed for deployment)
+# Dist folder (large EXE files)
+dist/
+
+# Installer output (large EXE files)
+installer_output/
 
 # Python
 __pycache__/
@@ -35,3 +38,5 @@ Thumbs.db
 
 # Installer output (optional - uncomment if you want to include)
 # installer_output/
+
+.vercel

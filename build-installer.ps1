@@ -66,3 +66,4 @@ Write-Host ""
 Copy-Item "installer_output\PDFScreenshotTool_Setup.exe" ".\PDFScreenshotTool_Setup.exe" -Force
 Write-Host "Also copied to: PDFScreenshotTool_Setup.exe" -ForegroundColor Cyan
 
+

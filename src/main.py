@@ -27,8 +27,9 @@ import pygetwindow as gw
 import mss
 import mss.tools
 import json
+import imagehash
 
-# Application version
+# Application version - Update this, version_info.txt, and installer.iss together
 APP_VERSION = "2.1.0"
 GITHUB_REPO = "draphael123/adobe-reader"
 UPDATE_CHECK_URL = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
@@ -146,6 +147,11 @@ DEFAULT_CONFIG = {
     'min_scroll_distance': 50,  # minimum pixels scrolled before capture
     'max_captures_per_document': 0,  # 0 = unlimited
     'capture_document_only': False,  # crop to document area
+    
+    # Duplicate detection (perceptual hashing)
+    'duplicate_detection_enabled': True,  # enable smart duplicate detection
+    'duplicate_hash_size': 16,  # hash size (8, 16, or 32) - higher = more precise
+    'duplicate_similarity_threshold': 5,  # max hash difference to consider duplicate (0-64, 0=exact match)
     
     # Image settings
     'image_format': 'png',  # 'png', 'jpeg', or 'webp'
@@ -730,7 +736,7 @@ class AcrobatMonitor:
         self.last_capture_time = 0
         self.last_window_title = ""
         self.screenshot_count = 0
-        self.last_screenshot_hash = None  # For duplicate detection
+        self.captured_page_hashes = {}  # Dict of {doc_name: set(hashes)} for duplicate detection
         self.pending_capture = None  # Track pending capture timer
         self.capture_lock = threading.Lock()  # Thread safety
         self.recent_captures = []  # Store recent capture paths
@@ -748,24 +754,48 @@ class AcrobatMonitor:
             active_window = gw.getActiveWindow()
             if active_window:
                 title = active_window.title
-                # Check if it's Adobe Acrobat/Reader
-                is_acrobat = any(acrobat_title in title for acrobat_title in self.ACROBAT_TITLES)
+                
+                # Adobe Acrobat window titles follow the pattern: "Document Name - Adobe Acrobat [variant]"
+                # We need to check that the title ENDS with an Adobe identifier to avoid false positives
+                # (e.g., websites with "Adobe Acrobat" in the title)
+                
+                # Check if title ends with an Adobe identifier (the real Acrobat pattern)
+                adobe_suffixes = [
+                    ' - Adobe Acrobat Reader DC',
+                    ' - Adobe Acrobat Reader',
+                    ' - Adobe Acrobat Pro DC', 
+                    ' - Adobe Acrobat Pro',
+                    ' - Adobe Acrobat DC',
+                    ' - Adobe Acrobat',
+                    ' - Acrobat Reader DC',
+                    ' - Acrobat Reader',
+                ]
+                
+                is_acrobat = any(title.endswith(suffix) for suffix in adobe_suffixes)
+                
+                # Also check for exact matches (app without document open)
+                just_app_names = ['Adobe Acrobat Reader', 'Adobe Acrobat', 'Adobe Acrobat Reader DC', 
+                                  'Adobe Acrobat DC', 'Adobe Acrobat Pro DC', 'Adobe Acrobat Pro',
+                                  'Acrobat Reader DC', 'Acrobat Reader']
+                
+                if title.strip() in just_app_names:
+                    # App is open but no document - still counts as Acrobat being active
+                    # but we won't capture (handled below)
+                    is_acrobat = True
+                
                 if not is_acrobat:
                     return False, "", None
                 
-                # Check if an actual PDF is open
-                # Adobe shows titles like "Document.pdf - Adobe Acrobat" or just "Document Name - Adobe Acrobat"
-                # Reject if it's JUST the app name with no document
-                just_app_names = ['Adobe Acrobat Reader', 'Adobe Acrobat', 'Adobe Acrobat Reader DC', 
-                                  'Adobe Acrobat DC', 'Adobe Acrobat Pro DC', 'Adobe Acrobat Pro',
-                                  'Home', 'Home - Adobe Acrobat Reader DC', 'Home - Adobe Acrobat DC']
+                # Check if an actual PDF is open (not just the app home screen)
+                home_screens = ['Home', 'Home - Adobe Acrobat Reader DC', 'Home - Adobe Acrobat DC',
+                                'Home - Adobe Acrobat Pro DC', 'Home - Adobe Acrobat Pro']
+                home_screens.extend(just_app_names)
                 
-                if title.strip() in just_app_names:
+                if title.strip() in home_screens:
                     # No document open, just the app home screen
                     return False, "", None
                 
                 # If we get here, Acrobat is open with a document
-                # The document might or might not have .pdf in the title (Adobe sometimes hides it)
                 return True, title, active_window
         except Exception:
             pass
@@ -815,9 +845,61 @@ class AcrobatMonitor:
                 return doc_name[:50]  # Limit length
         return "Unknown Document"
     
-    def get_image_hash(self, image_data):
-        """Generate a hash of image data for duplicate detection."""
-        return hashlib.md5(image_data).hexdigest()
+    def get_image_hash(self, img):
+        """Generate a perceptual hash of an image for duplicate detection.
+        
+        Uses perceptual hashing (pHash) which is robust to:
+        - Minor visual differences
+        - Slight rendering variations
+        - Cursor position changes
+        - Scrollbar state changes
+        
+        Args:
+            img: PIL Image object
+            
+        Returns:
+            imagehash.ImageHash object
+        """
+        hash_size = self.config.get('duplicate_hash_size')
+        return imagehash.phash(img, hash_size=hash_size)
+    
+    def is_duplicate_page(self, current_hash, doc_name):
+        """Check if a page with this hash (or similar) was already captured.
+        
+        Args:
+            current_hash: imagehash.ImageHash of the current screenshot
+            doc_name: Document name for scoping
+            
+        Returns:
+            True if duplicate/similar page exists, False otherwise
+        """
+        if not self.config.get('duplicate_detection_enabled'):
+            return False
+        
+        if doc_name not in self.captured_page_hashes:
+            return False
+        
+        threshold = self.config.get('duplicate_similarity_threshold')
+        
+        for existing_hash in self.captured_page_hashes[doc_name]:
+            # Calculate Hamming distance between hashes
+            distance = current_hash - existing_hash
+            if distance <= threshold:
+                logger.debug(f"Found similar page (distance={distance}, threshold={threshold})")
+                return True
+        
+        return False
+    
+    def add_page_hash(self, current_hash, doc_name):
+        """Add a page hash to the captured hashes for a document.
+        
+        Args:
+            current_hash: imagehash.ImageHash of the captured screenshot
+            doc_name: Document name for scoping
+        """
+        if doc_name not in self.captured_page_hashes:
+            self.captured_page_hashes[doc_name] = []
+        self.captured_page_hashes[doc_name].append(current_hash)
     
     def get_document_area(self, window):
         """Try to estimate the document area within the Acrobat window."""
@@ -913,16 +995,22 @@ class AcrobatMonitor:
                 }
                 screenshot = sct.grab(monitor)
                 
-                # Check for duplicate screenshot (skip for manual captures)
-                if not manual:
-                    current_hash = self.get_image_hash(screenshot.rgb)
-                    if current_hash == self.last_screenshot_hash:
-                        logger.debug("Skipping duplicate screenshot")
-                        return None
-                    self.last_screenshot_hash = current_hash
-                
                 # Convert to PIL Image for processing
                 img = Image.frombytes("RGB", screenshot.size, screenshot.bgra, "raw", "BGRX")
+                
+                # Check for duplicate screenshot using perceptual hashing (skip for manual captures)
+                # This ensures we only capture when a new page is actually reached
+                # Perceptual hashing detects visually similar pages even with minor differences
+                if not manual and self.config.get('duplicate_detection_enabled'):
+                    current_hash = self.get_image_hash(img)
+                    
+                    # Check if this page (or a similar one) was already captured
+                    if self.is_duplicate_page(current_hash, doc_name):
+                        logger.debug(f"Skipping duplicate/similar page for '{doc_name}'")
+                        return None
+                    
+                    # Add hash to track this page as captured
+                    self.add_page_hash(current_hash, doc_name)
                 
                 # Apply grayscale if enabled
                 if self.config.get('grayscale_mode'):
@@ -1222,6 +1310,34 @@ class AcrobatMonitor:
         if self.mouse_listener:
             self.mouse_listener.stop()
         logger.info("Monitoring stopped")
+    
+    def clear_captured_hashes(self, doc_name=None):
+        """Clear captured page hashes to allow re-capturing pages.
+        
+        Args:
+            doc_name: If provided, only clear hashes for this document.
+                      If None, clear all hashes.
+        """
+        if doc_name:
+            if doc_name in self.captured_page_hashes:
+                count = len(self.captured_page_hashes[doc_name])
+                del self.captured_page_hashes[doc_name]
+                logger.info(f"Cleared {count} captured page hashes for '{doc_name}'")
+        else:
+            total = sum(len(hashes) for hashes in self.captured_page_hashes.values())
+            self.captured_page_hashes.clear()
+            logger.info(f"Cleared all captured page hashes ({total} total)")
+    
+    def get_captured_page_count(self, doc_name=None):
+        """Get the number of unique pages captured.
+        
+        Args:
+            doc_name: If provided, return count for this document only.
+                      If None, return total across all documents.
+        """
+        if doc_name:
+            return len(self.captured_page_hashes.get(doc_name, []))
+        return sum(len(hashes) for hashes in self.captured_page_hashes.values())
 
 
 class FirstRunSetup:
@@ -1340,14 +1456,22 @@ class FirstRunSetup:
         info_frame.pack(fill=tk.X, pady=(0, 20))
         
         steps = [
-            "1. The app runs in the system tray (bottom-right, near clock)",
-            "2. Open any PDF in Adobe Acrobat or Adobe Reader",
-            "3. Navigate pages using Page Up/Down, arrows, or scroll",
-            "4. Screenshots are captured automatically!",
+            "1. Look for the 📷 camera icon in your system tray",
+            "   (bottom-right corner, near the clock - click ▲ if hidden)",
             "",
-            "Hotkeys:",
+            "2. Open any PDF in Adobe Acrobat Reader or Pro",
+            "",
+            "3. Navigate pages - screenshots capture automatically!",
+            "",
+            "Icon Colors:",
+            "   🔵 Blue = Ready, waiting for Acrobat",
+            "   🟢 Green = Capturing (Acrobat active)",
+            "   🟠 Orange = Paused",
+            "",
+            "Keyboard Shortcuts:",
             "   • Ctrl+Shift+S - Manual capture",
-            "   • Ctrl+Shift+P - Pause/Resume"
+            "   • Ctrl+Shift+P - Pause/Resume",
+            "   • Ctrl+Shift+O - Open screenshots folder"
         ]
         
         for step in steps:
@@ -2232,7 +2356,7 @@ class SettingsWindow:
         threading.Thread(target=batch_window.show, daemon=True).start()
     
     def show_advanced(self):
-        advanced_window = AdvancedSettingsWindow(self.config)
+        advanced_window = AdvancedSettingsWindow(self.config, self.monitor)
         threading.Thread(target=advanced_window.show, daemon=True).start()
     
     def close(self):
@@ -2244,8 +2368,9 @@ class SettingsWindow:
 class AdvancedSettingsWindow:
     """Advanced settings window with all detailed options."""
     
-    def __init__(self, config):
+    def __init__(self, config, monitor=None):
         self.config = config
+        self.monitor = monitor
         self.window = None
     
     def show(self):
@@ -2321,6 +2446,34 @@ class AdvancedSettingsWindow:
         self.max_captures_var = tk.StringVar(value=str(self.config.get('max_captures_per_document')))
         ttk.Spinbox(max_frame, from_=0, to=1000, increment=10, textvariable=self.max_captures_var, width=8).pack(side=tk.LEFT, padx=5)
         ttk.Label(max_frame, text="(0 = unlimited)").pack(side=tk.LEFT)
+        
+        # === Duplicate Detection Section ===
+        ttk.Label(capture_frame, text="Duplicate Detection", style='Header.TLabel').pack(anchor=tk.W, pady=(15, 0))
+        ttk.Separator(capture_frame, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=5)
+        
+        self.dup_detect_var = tk.BooleanVar(value=self.config.get('duplicate_detection_enabled'))
+        ttk.Checkbutton(capture_frame, text="Enable smart duplicate detection (skip already-captured pages)", variable=self.dup_detect_var).pack(anchor=tk.W)
+        
+        # Similarity threshold
+        thresh_frame = ttk.Frame(capture_frame)
+        thresh_frame.pack(fill=tk.X, pady=5)
+        ttk.Label(thresh_frame, text="Similarity threshold:").pack(side=tk.LEFT)
+        self.dup_thresh_var = tk.StringVar(value=str(self.config.get('duplicate_similarity_threshold')))
+        ttk.Spinbox(thresh_frame, from_=0, to=20, increment=1, textvariable=self.dup_thresh_var, width=8).pack(side=tk.LEFT, padx=5)
+        ttk.Label(thresh_frame, text="(0=exact, 5=recommended, higher=more lenient)").pack(side=tk.LEFT)
+        
+        # Hash precision
+        hash_frame = ttk.Frame(capture_frame)
+        hash_frame.pack(fill=tk.X, pady=5)
+        ttk.Label(hash_frame, text="Detection precision:").pack(side=tk.LEFT)
+        self.dup_hash_var = tk.StringVar(value=str(self.config.get('duplicate_hash_size')))
+        hash_combo = ttk.Combobox(hash_frame, textvariable=self.dup_hash_var, values=['8', '16', '32'], width=6, state='readonly')
+        hash_combo.pack(side=tk.LEFT, padx=5)
+        ttk.Label(hash_frame, text="(8=fast, 16=balanced, 32=precise)").pack(side=tk.LEFT)
+        
+        # Clear hashes button
+        clear_btn = ttk.Button(capture_frame, text="Clear Captured Page History", command=self.clear_page_hashes)
+        clear_btn.pack(anchor=tk.W, pady=10)
         
         # === Image Tab ===
         image_frame = ttk.Frame(notebook, padding=15)
@@ -2515,12 +2668,24 @@ class AdvancedSettingsWindow:
         if file:
             self.sound_file_var.set(file)
     
+    def clear_page_hashes(self):
+        """Clear all captured page hashes to allow re-capturing."""
+        if self.monitor:
+            self.monitor.clear_captured_hashes()
+            from tkinter import messagebox
+            messagebox.showinfo("Success", "Captured page history cleared.\nPages can now be re-captured.")
+    
     def save_all(self):
         # Capture settings
         self.config.set('capture_on_click', self.click_var.get())
         self.config.set('capture_cooldown', float(self.cooldown_var.get()))
         self.config.set('min_scroll_distance', int(self.min_scroll_var.get()))
         self.config.set('max_captures_per_document', int(self.max_captures_var.get()))
+        
+        # Duplicate detection settings
+        self.config.set('duplicate_detection_enabled', self.dup_detect_var.get())
+        self.config.set('duplicate_similarity_threshold', int(self.dup_thresh_var.get()))
+        self.config.set('duplicate_hash_size', int(self.dup_hash_var.get()))
         
         # Image settings
         self.config.set('grayscale_mode', self.grayscale_var.get())
@@ -2639,14 +2804,16 @@ class PDFScreenshotTool:
                     if self.icon:
                         self.icon.icon = self.create_icon_image()
                         
-                        # Update tooltip
+                        # Update tooltip with capture count
                         status_text = {
                             'active': 'Capturing (Acrobat active)',
                             'enabled': 'Ready (waiting for Acrobat)',
                             'disabled': 'Disabled',
                             'paused': 'Paused (Ctrl+Shift+P to resume)'
                         }
-                        self.icon.title = f"PDF Screenshot Tool - {status_text.get(new_status, 'Ready')}"
+                        capture_count = self.stats.stats.get('session_captures', 0)
+                        capture_info = f" | {capture_count} captures today" if capture_count > 0 else ""
+                        self.icon.title = f"PDF Screenshot Tool - {status_text.get(new_status, 'Ready')}{capture_info}"
             except Exception:
                 pass
             
@@ -2729,6 +2896,23 @@ class PDFScreenshotTool:
         """Show recent captures window."""
         recent_window = RecentCapturesWindow(self.monitor, self.config)
         threading.Thread(target=recent_window.show, daemon=True).start()
+    
+    def view_last_capture(self, icon=None, item=None):
+        """Open the last captured screenshot."""
+        import subprocess
+        if self.monitor.recent_captures:
+            last_capture = self.monitor.recent_captures[-1]
+            filepath = last_capture['path']
+            if Path(filepath).exists():
+                subprocess.Popen(f'explorer /select,"{filepath}"')
+            else:
+                logger.warning(f"Last capture file not found: {filepath}")
+        else:
+            logger.info("No captures yet")
+    
+    def has_last_capture(self):
+        """Check if there's a last capture available."""
+        return len(self.monitor.recent_captures) > 0
     
     def show_statistics(self, icon=None, item=None):
         """Show statistics window."""
@@ -3046,12 +3230,13 @@ class PDFScreenshotTool:
                 )
             ),
             pystray.Menu.SEPARATOR,
+            pystray.MenuItem("View Last Capture", self.view_last_capture, enabled=self.has_last_capture),
             pystray.MenuItem("Recent Captures", self.show_recent),
             pystray.MenuItem("Statistics", self.show_statistics),
             pystray.MenuItem("Batch Actions", self.show_batch_actions),
             pystray.Menu.SEPARATOR,
-            pystray.MenuItem("Open Screenshot Folder", self.open_folder),
-            pystray.MenuItem("Settings...", self.open_settings),
+            pystray.MenuItem("Open Screenshot Folder (Ctrl+Shift+O)", self.open_folder),
+            pystray.MenuItem("Settings... (Ctrl+Shift+,)", self.open_settings),
             pystray.Menu.SEPARATOR,
             pystray.MenuItem(f"Check for Updates (v{APP_VERSION})", self.check_for_updates),
             pystray.MenuItem("Quit", self.quit_app)
