@@ -1201,6 +1201,90 @@
             }
         }
 
+        /* What's New Section */
+        .whats-new-section {
+            background: linear-gradient(135deg, var(--mint-cream) 0%, var(--bg-main) 100%);
+        }
+
+        .whats-new-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .whats-new-card {
+            background: var(--bg-card);
+            border: 1px solid rgba(26, 43, 60, 0.06);
+            border-radius: 20px;
+            padding: 32px;
+            transition: all 0.3s;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .whats-new-card.highlight {
+            background: var(--gradient-fire);
+            color: white;
+            border: none;
+            box-shadow: var(--shadow-glow);
+        }
+
+        .whats-new-card.highlight h3,
+        .whats-new-card.highlight p {
+            color: white;
+        }
+
+        .whats-new-card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--shadow-medium);
+        }
+
+        .whats-new-card.highlight:hover {
+            box-shadow: var(--shadow-glow);
+            transform: translateY(-8px) scale(1.02);
+        }
+
+        .whats-new-icon {
+            width: 64px;
+            height: 64px;
+            background: var(--bg-warm);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+
+        .whats-new-card.highlight .whats-new-icon {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .whats-new-card h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--ink);
+            margin-bottom: 12px;
+        }
+
+        .whats-new-card p {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            line-height: 1.65;
+        }
+
+        .whats-new-cta {
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .whats-new-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
         /* Use Cases */
         .use-cases-grid {
             display: grid;
@@ -2811,6 +2895,42 @@
             </div>
         </section>
 
+        <!-- What's New Section -->
+        <section class="whats-new-section" id="whats-new">
+            <div class="container">
+                <div class="section-header animate-on-scroll">
+                    <span class="section-label">Latest Updates</span>
+                    <h2>What's New in v2.1.0</h2>
+                    <p>We've been busy making your screenshot life easier.</p>
+                </div>
+                <div class="whats-new-grid animate-on-scroll">
+                    <div class="whats-new-card highlight">
+                        <div class="whats-new-icon">🔧</div>
+                        <h3>Fixed Installation Scrolling</h3>
+                        <p>You can now scroll through the entire welcome screen! No more missing the "Start" button or important instructions. Everything is accessible and scrollable.</p>
+                    </div>
+                    <div class="whats-new-card highlight">
+                        <div class="whats-new-icon">😄</div>
+                        <h3>Funnier Setup Experience</h3>
+                        <p>We've spiced up the welcome screen with more engaging, humorous text. Installation doesn't have to be boring — enjoy the read while you set things up!</p>
+                    </div>
+                    <div class="whats-new-card">
+                        <div class="whats-new-icon">🧠</div>
+                        <h3>AI Duplicate Detection</h3>
+                        <p>Smart perceptual hashing automatically skips identical pages, saving you disk space and processing time.</p>
+                    </div>
+                    <div class="whats-new-card">
+                        <div class="whats-new-icon">⚙️</div>
+                        <h3>Improved Settings</h3>
+                        <p>Better organized settings window with more customization options and clearer explanations.</p>
+                    </div>
+                </div>
+                <div class="whats-new-cta animate-on-scroll">
+                    <a href="#changelog" class="btn btn-secondary">View Full Changelog</a>
+                </div>
+            </div>
+        </section>
+
         <!-- Features Section -->
         <section class="features" id="features">
             <div class="container">
@@ -3764,7 +3884,7 @@
                     <li><a href="#features">Features</a></li>
                     <li><a href="#faq">FAQ</a></li>
                     <li><a href="#changelog">Changelog</a></li>
-                    <li><a href="#privacy">Privacy</a></li>
+                    <li><a href="/privacy.html">Privacy</a></li>
                     <li><a href="https://github.com/draphael123/adobe-reader" target="_blank">GitHub</a></li>
                 </ul>
             </div>

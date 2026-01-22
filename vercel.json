@@ -20,5 +20,9 @@
   ],
   "rewrites": [
     { "source": "/download", "destination": "/PDFScreenshotTool.zip" }
+  ],
+  "routes": [
+    { "src": "/sitemap.xml", "dest": "/sitemap.xml" },
+    { "src": "/robots.txt", "dest": "/robots.txt" }
   ]
 }
