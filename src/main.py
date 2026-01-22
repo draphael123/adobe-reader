@@ -1743,15 +1743,40 @@ class FirstRunSetup:
         style.configure('Subtitle.TLabel', font=('Segoe UI', 11), background=bg_color, foreground='#a0a0a0')
         style.configure('Header.TLabel', font=('Segoe UI', 10, 'bold'), background=bg_color, foreground=accent_color)
         
-        # Main frame
-        main_frame = ttk.Frame(self.window, padding="30")
-        main_frame.pack(fill=tk.BOTH, expand=True)
+        # Create scrollable canvas
+        canvas = tk.Canvas(self.window, bg=bg_color, highlightthickness=0)
+        scrollbar = ttk.Scrollbar(self.window, orient="vertical", command=canvas.yview)
+        
+        # Main frame (inside canvas)
+        main_frame = ttk.Frame(canvas, padding="30")
+        
+        main_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+        )
+        
+        canvas_window = canvas.create_window((0, 0), window=main_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+        
+        # Update canvas window width when canvas is resized
+        def configure_canvas_window(event):
+            canvas_width = event.width
+            canvas.itemconfig(canvas_window, width=canvas_width)
+        canvas.bind('<Configure>', configure_canvas_window)
+        
+        # Enable mouse wheel scrolling
+        def on_mousewheel(event):
+            canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+        canvas.bind_all("<MouseWheel>", on_mousewheel)
+        
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         
         # Welcome header
-        ttk.Label(main_frame, text="👋 Welcome!", style='Title.TLabel').pack(pady=(0, 10))
+        ttk.Label(main_frame, text="👋 Welcome, Future Screenshot Master!", style='Title.TLabel').pack(pady=(0, 10))
         ttk.Label(
             main_frame, 
-            text="Let's set up PDF Screenshot Tool.\nIt will run in the background and capture screenshots\nautomatically when you navigate PDF pages in Adobe Acrobat.",
+            text="Let's set up your PDF Screenshot Tool (it's basically a ninja for your PDFs).\nIt'll sneakily run in the background and capture screenshots\nautomatically while you navigate pages in Adobe Acrobat. No manual clicking required!",
             style='Subtitle.TLabel',
             justify=tk.CENTER
         ).pack(pady=(0, 30))
@@ -1761,7 +1786,7 @@ class FirstRunSetup:
         settings_frame.pack(fill=tk.X, pady=(0, 20))
         
         # Save folder
-        ttk.Label(settings_frame, text="Save screenshots to:", style='Header.TLabel').pack(anchor=tk.W)
+        ttk.Label(settings_frame, text="Where should we stash your screenshots?", style='Header.TLabel').pack(anchor=tk.W)
         
         folder_frame = ttk.Frame(settings_frame)
         folder_frame.pack(fill=tk.X, pady=(5, 15))
@@ -1779,52 +1804,54 @@ class FirstRunSetup:
         self.scroll_var = tk.BooleanVar(value=True)
         ttk.Checkbutton(
             settings_frame, 
-            text="Capture on mouse scroll (recommended for smooth scrolling)",
+            text="Capture on mouse scroll (because who has time to click buttons?)",
             variable=self.scroll_var
         ).pack(anchor=tk.W, pady=2)
         
         self.sound_var = tk.BooleanVar(value=True)
         ttk.Checkbutton(
             settings_frame, 
-            text="Play sound when screenshot is captured",
+            text="Play sound when screenshot is captured (satisfying 'click' sound included!)",
             variable=self.sound_var
         ).pack(anchor=tk.W, pady=2)
         
         self.notify_var = tk.BooleanVar(value=True)
         ttk.Checkbutton(
             settings_frame, 
-            text="Show notification when screenshot is captured",
+            text="Show notification when screenshot is captured (so you know it's working)",
             variable=self.notify_var
         ).pack(anchor=tk.W, pady=2)
         
         self.startup_var = tk.BooleanVar(value=False)
         ttk.Checkbutton(
             settings_frame, 
-            text="Start automatically with Windows",
+            text="Start automatically with Windows (because we're clingy like that)",
             variable=self.startup_var
         ).pack(anchor=tk.W, pady=2)
         
         # Info section
-        info_frame = ttk.LabelFrame(main_frame, text="How to Use", padding="15")
+        info_frame = ttk.LabelFrame(main_frame, text="How to Use (It's Easier Than Making Coffee)", padding="15")
         info_frame.pack(fill=tk.X, pady=(0, 20))
         
         steps = [
             "1. Look for the 📷 camera icon in your system tray",
-            "   (bottom-right corner, near the clock - click ▲ if hidden)",
+            "   (bottom-right corner, near the clock - click ▲ if it's being shy)",
             "",
             "2. Open any PDF in Adobe Acrobat Reader or Pro",
+            "   (Yes, it works with both! We're not picky.)",
             "",
             "3. Navigate pages - screenshots capture automatically!",
+            "   (Just scroll, use arrows, or press Page Up/Down. We're watching 👀)",
             "",
-            "Icon Colors:",
-            "   🔵 Blue = Ready, waiting for Acrobat",
-            "   🟢 Green = Capturing (Acrobat active)",
-            "   🟠 Orange = Paused",
+            "Icon Colors (Your Status Dashboard):",
+            "   🔵 Blue = Ready and waiting (like a patient ninja)",
+            "   🟢 Green = Actively capturing (we're in business!)",
+            "   🟠 Orange = Taking a break (even ninjas need rest)",
             "",
-            "Keyboard Shortcuts:",
-            "   • Ctrl+Shift+S - Manual capture",
-            "   • Ctrl+Shift+P - Pause/Resume",
-            "   • Ctrl+Shift+O - Open screenshots folder"
+            "Keyboard Shortcuts (Because Clicking is Overrated):",
+            "   • Ctrl+Shift+S - Manual capture (for when you're feeling fancy)",
+            "   • Ctrl+Shift+P - Pause/Resume (the power is in your hands)",
+            "   • Ctrl+Shift+O - Open screenshots folder (see your beautiful work)"
         ]
         
         for step in steps:
@@ -1833,7 +1860,7 @@ class FirstRunSetup:
         # Big Start Button
         start_btn = tk.Button(
             main_frame, 
-            text="  ▶  Start PDF Screenshot Tool  ", 
+            text="  ▶  Let's Do This! (Start Screenshotting)  ", 
             command=self.finish_setup,
             font=('Segoe UI', 12, 'bold'),
             bg='#4f46e5',
