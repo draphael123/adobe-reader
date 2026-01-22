@@ -1928,6 +1928,186 @@
             stroke: var(--seafoam);
         }
 
+        /* Version History */
+        .versions-section {
+            padding: 100px 0;
+            background: var(--bg-warm);
+        }
+
+        .versions-container {
+            display: grid;
+            gap: 24px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .version-card {
+            background: white;
+            border: 2px solid rgba(26, 43, 60, 0.06);
+            border-radius: 20px;
+            padding: 28px;
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        .version-card:hover {
+            border-color: rgba(26, 43, 60, 0.12);
+            box-shadow: var(--shadow-medium);
+        }
+
+        .version-card.current {
+            border-color: var(--tangerine);
+            background: linear-gradient(135deg, rgba(255, 107, 53, 0.03) 0%, rgba(247, 201, 72, 0.03) 100%);
+        }
+
+        .version-badge {
+            position: absolute;
+            top: -12px;
+            right: 24px;
+            background: var(--gradient-fire);
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 6px 16px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .version-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .version-header h3 {
+            font-size: 1.4rem;
+            color: var(--ink);
+            margin: 0;
+        }
+
+        .version-date {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            font-family: 'DM Mono', monospace;
+        }
+
+        .version-changes h4 {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+        }
+
+        .version-changes ul {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 20px 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 8px;
+        }
+
+        .version-changes li {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            padding: 4px 0;
+        }
+
+        .version-downloads {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .version-download-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .version-download-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .version-download-btn.primary {
+            background: var(--gradient-fire);
+            color: white;
+        }
+
+        .version-download-btn.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .version-download-btn.secondary {
+            background: var(--bg-soft);
+            color: var(--text-secondary);
+            border: 1px solid rgba(26, 43, 60, 0.1);
+        }
+
+        .version-download-btn.secondary:hover {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border-color: rgba(26, 43, 60, 0.2);
+        }
+
+        .versions-note {
+            max-width: 700px;
+            margin: 40px auto 0;
+            text-align: center;
+            padding: 20px;
+            background: white;
+            border-radius: 16px;
+            border: 1px solid rgba(26, 43, 60, 0.06);
+        }
+
+        .versions-note p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin: 8px 0;
+        }
+
+        .versions-note a {
+            color: var(--deep-teal);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .versions-note a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 600px) {
+            .version-card {
+                padding: 20px;
+            }
+            
+            .version-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .version-downloads {
+                flex-direction: column;
+            }
+            
+            .version-download-btn {
+                justify-content: center;
+            }
+        }
+
         /* FAQ */
         .faq-section {
             background: var(--bg-soft);
@@ -2350,8 +2530,8 @@
                         <li><a href="#features">Features</a></li>
                         <li><a href="#use-cases">Use Cases</a></li>
                         <li><a href="#how-it-works">How It Works</a></li>
+                        <li><a href="#versions">Downloads</a></li>
                         <li><a href="#faq">FAQ</a></li>
-                        <li><a href="#changelog">Changelog</a></li>
                     </ul>
                 </nav>
                 <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle menu">
@@ -2368,8 +2548,8 @@
             <li><a href="#features" class="mobile-nav-link">Features</a></li>
             <li><a href="#use-cases" class="mobile-nav-link">Use Cases</a></li>
             <li><a href="#how-it-works" class="mobile-nav-link">How It Works</a></li>
+            <li><a href="#versions" class="mobile-nav-link">Downloads</a></li>
             <li><a href="#faq" class="mobile-nav-link">FAQ</a></li>
-            <li><a href="#changelog" class="mobile-nav-link">Changelog</a></li>
         </ul>
     </nav>
 
@@ -3170,6 +3350,109 @@
                 </div>
             </div>
         </div>
+
+        <!-- Version History Section -->
+        <section class="versions-section" id="versions">
+            <div class="container">
+                <div class="section-header animate-on-scroll">
+                    <span class="section-label">Downloads</span>
+                    <h2>Version History</h2>
+                    <p>All releases available for download. New versions automatically upgrade existing installations.</p>
+                </div>
+                <div class="versions-container animate-on-scroll">
+                    <!-- Current Version -->
+                    <div class="version-card current">
+                        <div class="version-badge">Latest</div>
+                        <div class="version-header">
+                            <h3>Version 2.1.0</h3>
+                            <span class="version-date">January 2026</span>
+                        </div>
+                        <div class="version-changes">
+                            <h4>What's New:</h4>
+                            <ul>
+                                <li>✨ Watermarking support (timestamp, text, or image)</li>
+                                <li>📋 Auto-copy to clipboard after capture</li>
+                                <li>✂️ Custom crop margins</li>
+                                <li>⚡ Performance settings (memory limit, CPU priority)</li>
+                                <li>📁 Backup folder option</li>
+                                <li>🔧 Post-capture script support</li>
+                            </ul>
+                        </div>
+                        <div class="version-downloads">
+                            <a href="https://github.com/draphael123/adobe-reader/releases/download/v2.1.0/PDFScreenshotTool.exe" class="version-download-btn primary">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                Download .exe
+                            </a>
+                            <a href="https://github.com/draphael123/adobe-reader/releases/download/v2.1.0/PDFScreenshotTool.zip" class="version-download-btn secondary">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                Download .zip
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Version 2.0.0 -->
+                    <div class="version-card">
+                        <div class="version-header">
+                            <h3>Version 2.0.0</h3>
+                            <span class="version-date">December 2025</span>
+                        </div>
+                        <div class="version-changes">
+                            <h4>What's New:</h4>
+                            <ul>
+                                <li>🧠 AI-powered duplicate detection (perceptual hashing)</li>
+                                <li>📊 Statistics dashboard</li>
+                                <li>🎨 Dark mode support</li>
+                                <li>⌨️ Global hotkey support</li>
+                                <li>🔄 Auto-update checking</li>
+                            </ul>
+                        </div>
+                        <div class="version-downloads">
+                            <a href="https://github.com/draphael123/adobe-reader/releases/download/v2.0.0/PDFScreenshotTool.exe" class="version-download-btn secondary">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                Download .exe
+                            </a>
+                            <a href="https://github.com/draphael123/adobe-reader/releases/download/v2.0.0/PDFScreenshotTool.zip" class="version-download-btn secondary">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                Download .zip
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Version 1.0.0 -->
+                    <div class="version-card">
+                        <div class="version-header">
+                            <h3>Version 1.0.0</h3>
+                            <span class="version-date">November 2025</span>
+                        </div>
+                        <div class="version-changes">
+                            <h4>Initial Release:</h4>
+                            <ul>
+                                <li>📸 Automatic PDF page capture</li>
+                                <li>🖱️ Scroll and click detection</li>
+                                <li>📁 Organize by document name</li>
+                                <li>🖼️ PNG, JPEG, WebP output formats</li>
+                                <li>🔔 System tray notifications</li>
+                            </ul>
+                        </div>
+                        <div class="version-downloads">
+                            <a href="https://github.com/draphael123/adobe-reader/releases/download/v1.0.0/PDFScreenshotTool.exe" class="version-download-btn secondary">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                Download .exe
+                            </a>
+                            <a href="https://github.com/draphael123/adobe-reader/releases/download/v1.0.0/PDFScreenshotTool.zip" class="version-download-btn secondary">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                Download .zip
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="versions-note animate-on-scroll">
+                    <p>💡 <strong>Tip:</strong> Installing any version will automatically replace an existing installation. Your settings and captured screenshots are preserved.</p>
+                    <p>📋 <a href="https://github.com/draphael123/adobe-reader/releases" target="_blank">View all releases on GitHub →</a></p>
+                </div>
+            </div>
+        </section>
 
         <!-- FAQ Section -->
         <section class="faq-section" id="faq">
