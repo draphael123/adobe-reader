@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDF Screenshot Tool</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📸 PDF Screenshot Tool</h1>
+      <div class="status" id="status">
+        <span class="status-dot" id="statusDot"></span>
+        <span id="statusText">Loading...</span>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button id="toggleBtn" class="btn btn-primary">
+        <span id="toggleText">Enable</span>
+      </button>
+      <button id="captureBtn" class="btn btn-secondary">
+        Capture Now
+      </button>
+    </div>
+
+    <div class="info-section">
+      <div class="info-item">
+        <span class="label">Current Page:</span>
+        <span id="currentPage">-</span>
+      </div>
+      <div class="info-item">
+        <span class="label">Document:</span>
+        <span id="docName">-</span>
+      </div>
+    </div>
+
+    <div class="stats-section">
+      <h3>Statistics</h3>
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-value" id="totalCaptures">0</div>
+          <div class="stat-label">Total Captures</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="sessionCaptures">0</div>
+          <div class="stat-label">This Session</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="duplicates">0</div>
+          <div class="stat-label">Duplicates Skipped</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button id="settingsBtn" class="btn btn-link">⚙️ Settings</button>
+      <button id="galleryBtn" class="btn btn-link">🖼️ Gallery</button>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
+

@@ -1,7 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
-  "name": "pdf-screenshot-tool",
   "headers": [
     {
       "source": "/PDFScreenshotTool.zip",
@@ -16,13 +15,18 @@
         { "key": "Content-Type", "value": "application/octet-stream" },
         { "key": "Content-Disposition", "value": "attachment; filename=PDFScreenshotTool.exe" }
       ]
+    },
+    {
+      "source": "/chrome-extension.zip",
+      "headers": [
+        { "key": "Content-Type", "value": "application/zip" },
+        { "key": "Content-Disposition", "value": "attachment; filename=PDF-Screenshot-Tool-Chrome-Extension.zip" }
+      ]
     }
   ],
   "rewrites": [
-    { "source": "/download", "destination": "/PDFScreenshotTool.zip" }
-  ],
-  "routes": [
-    { "src": "/sitemap.xml", "dest": "/sitemap.xml" },
-    { "src": "/robots.txt", "dest": "/robots.txt" }
+    { "source": "/download", "destination": "/PDFScreenshotTool.zip" },
+    { "source": "/sitemap.xml", "destination": "/sitemap.xml" },
+    { "source": "/robots.txt", "destination": "/robots.txt" }
   ]
 }
